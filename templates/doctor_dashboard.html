@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#0e111a;">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center fw-bold text-info" href="/doctor/dashboard">
+      <i class="fa-solid fa-user-doctor me-2"></i> MedStash Doctor
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#doctorNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="doctorNav">
+      <ul class="navbar-nav text-center">
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/dashboard"><i class="fa-solid fa-gauge fa-lg"></i><br><small>Dashboard</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/appointments"><i class="fa-solid fa-calendar-check fa-lg"></i><br><small>Appointments</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/notifications"><i class="fa-solid fa-bell fa-lg"></i>{% if notifications_count > 0 %}<span class="badge bg-danger">{{ notifications_count }}</span>{% endif %}<br><small>Notifications</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/wallet"><i class="fa-solid fa-wallet fa-lg"></i><br><small>Wallet</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/profile"><i class="fa-solid fa-user fa-lg"></i><br><small>Profile</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/logout"><i class="fa-solid fa-right-from-bracket fa-lg"></i><br><small>Logout</small></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4 px-4">
+
+  <!-- Welcome Card -->
+  <div id="welcomeCard" class="card mb-4 p-4 flat-card">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h3 class="fw-bold mb-1">Welcome back, Dr. {{ name }}</h3>
+        <p class="text-secondary mb-0">Manage your patients, appointments and prescriptions efficiently</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <i class="fa-solid fa-stethoscope text-info" style="font-size:3rem;"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Completion -->
+  {% if profile_complete == 0 %}
+  <div class="card mb-4 p-4 flat-card profile-card">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="mb-3">
+          {% if profile_percent < 30 %}
+            <h6 class="fw-semibold mb-2" style="color:#ff9800;">⚠️ Get Started - Complete Your Profile</h6>
+            <p class="text-secondary mb-3">Add your details to unlock features and appear in our Consult Now directory.</p>
+          {% elif profile_percent < 70 %}
+            <h6 class="fw-semibold mb-2" style="color:#ffc107;">📋 Almost There - Complete Your Profile</h6>
+            <p class="text-secondary mb-3">You're {{ profile_percent }}% done! Finish your profile to start receiving consultations.</p>
+          {% else %}
+            <h6 class="fw-semibold mb-2" style="color:#4dd0e1;">✅ Nearly Complete - Final Steps</h6>
+            <p class="text-secondary mb-3">You're {{ profile_percent }}% complete! Just a few more details to go.</p>
+          {% endif %}
+        </div>
+        <a href="/doctor/profile" class="btn btn-info btn-sm fw-bold">
+          <i class="fa-solid fa-arrow-right me-2"></i>Complete Profile
+        </a>
+      </div>
+      <div class="col-md-4 text-center">
+        <div class="progress-container">
+          <div class="circular-progress" style="--progress: {{ profile_percent * 3.6 }}deg;">
+            <div class="progress-circle">
+              <div class="progress-fill"></div>
+              <div class="progress-text">{{ profile_percent }}%</div>
+            </div>
+          </div>
+          <p class="progress-label mt-3">Profile Complete</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Stats Grid -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card stats-card p-4 flat-card" onclick="showPatientsList()" style="cursor:pointer;">
+        <div class="stats-icon"><i class="fa-solid fa-users text-primary"></i></div>
+        <div class="stats-content">
+          <h3>{{ total_patients or 0 }}</h3>
+          <p class="text-secondary fw-semibold">Total Patients</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card stats-card p-4 flat-card">
+        <div class="stats-icon"><i class="fa-solid fa-calendar-check text-success"></i></div>
+        <div class="stats-content">
+          <h3>{{ todays_appointments|length if todays_appointments else 0 }}</h3>
+          <p class="text-secondary fw-semibold">Today's Appointments</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card stats-card p-4 flat-card">
+        <div class="stats-icon"><i class="fa-solid fa-prescription-bottle-medical text-warning"></i></div>
+        <div class="stats-content">
+          <h3>{{ prescriptions or 0 }}</h3>
+          <p class="text-secondary fw-semibold">Prescriptions</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card stats-card p-4 flat-card" onclick="window.location.href='/wallet'" style="cursor:pointer;">
+        <div class="stats-icon"><i class="fa-solid fa-wallet text-info"></i></div>
+        <div class="stats-content">
+          <h3>₹{{ wallet_balance|round(2) if wallet_balance else '0.00' }}</h3>
+          <p class="text-secondary fw-semibold">Wallet Balance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Appointments -->
+  {% if todays_appointments %}
+  <div class="card mb-4 p-4 flat-card">
+    <h4 class="mb-3">Today's Appointments</h4>
+    <div class="row g-3">
+      {% for appointment in todays_appointments %}
+      <div class="col-md-6 col-lg-4">
+        <div class="appointment-block flat-card" data-appointment-id="{{ appointment.id }}" onclick="showAppointmentDetails(this.dataset.appointmentId)">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="badge bg-success">Today</span>
+            <i class="fa-solid fa-calendar-check text-success"></i>
+          </div>
+          <h6 class="mb-1">{{ appointment.patient_fname }} {{ appointment.patient_lname }}</h6>
+          <p class="text-secondary mb-1"><i class="fa-solid fa-clock me-2"></i>{{ appointment.time }}</p>
+          <p class="text-secondary mb-0"><i class="fa-solid fa-user-md me-2"></i>Confirmed</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Styles -->
+<style>
+body { 
+    background:#0f121d; 
+    color:#ECEFF1; 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* Cards */
+.card {
+    background:#121b2d;
+    border-radius:12px;
+    border:1px solid #2f3b52;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+}
+
+
+#welcomeCard {
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.flat-card:hover {
+    border-color:#4DD0E1; 
+    box-shadow: 0 6px 16px rgba(77,208,225,0.35);
+}
+
+/* Stats card */
+.stats-icon { 
+    font-size:2rem; 
+    margin-bottom:12px; 
+    color:#4DD0E1;
+}
+
+.stats-content h3 { 
+    font-size:1.8rem; 
+    font-weight:700; 
+    color:#4DD0E1; 
+}
+
+.stats-content p { 
+    color:#B0BEC5; 
+    font-weight:500; 
+}
+
+/* Appointments */
+.appointment-block { 
+    padding:18px; 
+    border-radius:12px; 
+    transition:all 0.3s ease; 
+    border:1px solid #2f3b52;
+    background:#121b2d;
+}
+
+.appointment-block:hover { 
+    background:#1a1f2c; 
+    border-color:#4DD0E1;
+    box-shadow: 0 4px 12px rgba(77,208,225,0.2);
+}
+
+.appointment-block h6 { 
+    color:#E0F7FA; 
+}
+
+.appointment-block p { 
+    color:#B0BEC5; 
+}
+
+/* Buttons */
+.btn-success { 
+    background:#16a34a; 
+    color:white; 
+    border:none; 
+    padding:12px 28px; 
+    font-weight:600; 
+    border-radius:8px; 
+    transition:all 0.2s ease; 
+}
+
+.btn-success:hover { 
+    background:#22c55e; 
+}
+
+/* Profile Card Button */
+.profile-card .btn-info {
+    background: linear-gradient(90deg, #4dd0e1, #00bcd4);
+    border: none;
+    color: #000;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(77, 208, 225, 0.3);
+}
+
+.profile-card .btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(77, 208, 225, 0.4);
+    background: linear-gradient(90deg, #00bcd4, #4dd0e1);
+}
+
+/* Profile Completion Card */
+.profile-card {
+    background: linear-gradient(135deg, #121b2d 0%, #1a2940 100%);
+    border: 2px solid rgba(77, 208, 225, 0.2);
+    box-shadow: 0 8px 24px rgba(77, 208, 225, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(77, 208, 225, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+.profile-card h6 {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px !important;
+}
+
+.progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(77, 208, 225, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(77, 208, 225, 0.15);
+}
+
+.progress-label {
+    color: #90a4ae;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Animated Progress Circle */
+.circular-progress { 
+    width: 90px; 
+    height: 90px; 
+    position: relative; 
+    --progress: 0deg; 
+}
+
+.progress-circle { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 50%; 
+    background: conic-gradient(#4dd0e1 0deg, #4dd0e1 var(--progress), rgba(77, 208, 225, 0.2) var(--progress), rgba(77, 208, 225, 0.2) 360deg); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    animation: rotateProgress 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    box-shadow: 0 0 20px rgba(77, 208, 225, 0.3);
+}
+
+.progress-fill { 
+    width: 65px; 
+    height: 65px; 
+    border-radius: 50%; 
+    background: #121b2d; 
+    position: absolute; 
+    z-index: 2;
+}
+
+.progress-text { 
+    color: #4dd0e1; 
+    font-weight: 700; 
+    font-size: 18px;
+    position: relative;
+    z-index: 3;
+    letter-spacing: 1px;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+@keyframes rotateProgress {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Card headings */
+.card h3, .card h4, .card h6 { 
+    color:#E0F7FA; 
+}
+
+/* Muted text */
+.text-secondary {
+    color:#90A4AE !important;
+    transition: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-content h3 { font-size: 1.5rem; }
+    .stats-icon { font-size: 1.5rem; }
+    .card h3, .card h4 { font-size: 1.25rem; }
+}
+</style>
+
+<!-- Scripts -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Animate welcome card
+  const welcomeCard = document.getElementById("welcomeCard");
+  welcomeCard.style.opacity = "1";
+  welcomeCard.style.transform = "translateX(0)";
+});
+</script>
+
+{% endblock %}

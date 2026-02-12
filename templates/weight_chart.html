@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Weight History Chart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Weight History Chart</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="weightChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="/weight_history" class="btn btn-secondary">View History</a>
+                <a href="/add_weight" class="btn btn-primary">Add New Weight</a>
+                <a href="/dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch weight data from API
+    fetch('/get_patient_vitals')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const vitals = data.vitals.filter(v => v.weight !== null);
+                const labels = vitals.map(v => new Date(v.date).toLocaleDateString());
+                const weights = vitals.map(v => v.weight);
+
+                const ctx = document.getElementById('weightChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Weight (kg)',
+                            data: weights,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgb(75, 192, 192)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weight History Over Time'
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Weight (kg)'
+                                },
+                                beginAtZero: false
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('weightChart').parentElement.innerHTML = '<p class="text-muted">No weight data available</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching weight data:', error);
+            document.getElementById('weightChart').parentElement.innerHTML = '<p class="text-danger">Error loading chart data</p>';
+        });
+});
+</script>
+{% endblock %}

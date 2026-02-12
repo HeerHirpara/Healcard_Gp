@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#0e111a;">
+  <div class="container-fluid">
+
+    <a class="navbar-brand d-flex align-items-center fw-bold" style="color:#4dd0e1;" href="/doctor/dashboard">
+      <i class="fa-solid fa-user-doctor me-2"></i> MedStash Doctor
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#doctorNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="doctorNav">
+      <ul class="navbar-nav text-center">
+
+        <li class="nav-item mx-2">
+          <a class="nav-link text-pro-muted" href="/doctor/dashboard">
+            <i class="fa-solid fa-gauge fa-lg"></i><br>
+            <small>Dashboard</small>
+          </a>
+        </li>
+
+        <li class="nav-item mx-2">
+          <a class="nav-link active text-pro-active" href="/doctor/appointments">
+            <i class="fa-solid fa-calendar-check fa-lg"></i><br>
+            <small>Appointments</small>
+          </a>
+        </li>
+
+        <li class="nav-item mx-2">
+          <a class="nav-link text-pro-muted" href="/doctor/notifications">
+            <i class="fa-solid fa-bell fa-lg"></i><br>
+            <small>Notifications</small>
+          </a>
+        </li>
+
+        <li class="nav-item mx-2">
+          <a class="nav-link text-pro-muted" href="/wallet">
+            <i class="fa-solid fa-wallet fa-lg"></i><br>
+            <small>Wallet</small>
+          </a>
+        </li>
+
+        <li class="nav-item mx-2">
+          <a class="nav-link text-pro-muted" href="/doctor/profile">
+            <i class="fa-solid fa-user fa-lg"></i><br>
+            <small>Profile</small>
+          </a>
+        </li>
+
+        <li class="nav-item mx-2">
+          <a class="nav-link text-pro-muted" href="/logout">
+            <i class="fa-solid fa-right-from-bracket fa-lg"></i><br>
+            <small>Logout</small>
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<div class="container-fluid px-4 mt-4">
+
+  <!-- ================= PAGE HEADER ================= -->
+  <div class="pro-card mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="page-title mb-1">My Appointments</h5>
+        <p class="page-sub">Today appointments and upcoming appointments grouped by date</p>
+      </div>
+      <i class="fa-solid fa-calendar-days header-icon"></i>
+    </div>
+  </div>
+
+
+{% if grouped_appointments %}
+
+  <!-- ================= TODAY SECTION ================= -->
+  {% set ns = namespace(found=false) %}
+
+  <div class="pro-card mb-4">
+
+    <div class="section-title mb-3">
+      <span class="today-dot me-2"></span>
+      Today – {{ today }}
+    </div>
+
+    <div class="row g-3">
+
+      {% for date, data in grouped_appointments.items() %}
+        {% if data.date_key == today %}
+
+          {% set ns.found = true %}
+
+          {% for appointment in data.appointments %}
+          <div class="col-md-6 col-lg-4">
+            <div class="appointment-card">
+
+              <div class="d-flex justify-content-between mb-2">
+                <span class="pro-badge-success">Accepted</span>
+                <span class="pro-badge-date">Today</span>
+              </div>
+
+              <div class="patient-name">
+                {{ appointment.patient_fname }} {{ appointment.patient_lname }}
+              </div>
+
+              <div class="appointment-meta">
+                <div><i class="fa-regular fa-clock"></i>{{ appointment.time }}</div>
+                <div><i class="fa-solid fa-location-dot"></i>{{ appointment.address or 'Patient Address' }}</div>
+              </div>
+
+              <div class="mt-3">
+                <button class="consult-btn"
+                        onclick="consultPatient('{{ appointment.id }}')">
+                  <i class="fa-solid fa-stethoscope me-1"></i>
+                  Start Consultation
+                </button>
+              </div>
+
+            </div>
+          </div>
+          {% endfor %}
+
+        {% endif %}
+      {% endfor %}
+
+      {% if not ns.found %}
+      <div class="col-12 text-center py-4">
+        <div class="empty-title">No appointments for today</div>
+        <div class="empty-sub mt-1">You have no confirmed consultations today</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+
+  <!-- ================= UPCOMING / OTHER DATES ================= -->
+  {% for date, data in grouped_appointments.items() %}
+    {% if data.date_key != today %}
+
+    <div class="pro-card mb-4">
+
+      <div class="section-title mb-3">
+        <i class="fa-solid fa-calendar-day me-2 text-pro-accent"></i>
+        {{ date }}
+      </div>
+
+      <div class="row g-3">
+
+        {% for appointment in data.appointments %}
+        <div class="col-md-6 col-lg-4">
+
+          <div class="appointment-card">
+
+            <div class="d-flex justify-content-between mb-2">
+              <span class="pro-badge-success">Accepted</span>
+              <span class="pro-badge-date">{{ date }}</span>
+            </div>
+
+            <div class="patient-name">
+              {{ appointment.patient_fname }} {{ appointment.patient_lname }}
+            </div>
+
+            <div class="appointment-meta">
+              <div><i class="fa-regular fa-clock"></i>{{ appointment.time }}</div>
+              <div><i class="fa-solid fa-location-dot"></i>{{ appointment.address or 'Patient Address' }}</div>
+            </div>
+
+          </div>
+
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    {% endif %}
+  {% endfor %}
+
+{% else %}
+
+  <!-- ================= EMPTY ================= -->
+  <div class="pro-card text-center py-5">
+    <div class="empty-icon mb-3">
+      <i class="fa-solid fa-calendar-xmark"></i>
+    </div>
+    <div class="empty-title">No Appointments Found</div>
+    <div class="empty-sub mt-1">You do not have any accepted appointments yet</div>
+  </div>
+
+{% endif %}
+
+</div>
+
+
+<!-- ================= STYLES ================= -->
+<style>
+
+body{
+  background:#0f121d;
+  color:#eafcff;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* navbar text */
+.text-pro-muted{
+  color:#9fb8c4 !important;
+}
+
+.text-pro-active{
+  color:#4dd0e1 !important;
+}
+
+.text-pro-accent{
+  color:#7dd3fc;
+}
+
+/* container card */
+.pro-card{
+  background:#121b2d;
+  border:1px solid #2f3b52;
+  border-radius:12px;
+  padding:22px;
+}
+
+/* header */
+.page-title{
+  color:#f2fdff;
+  font-weight:600;
+  letter-spacing:.3px;
+}
+
+.page-sub{
+  color:#b4ccd6;
+  font-size:.85rem;
+}
+
+.header-icon{
+  font-size:2rem;
+  color:#4dd0e1;
+}
+
+/* section title */
+.section-title{
+  color:#eefcff;
+  font-weight:600;
+  font-size:.95rem;
+  letter-spacing:.2px;
+  display:flex;
+  align-items:center;
+}
+
+/* today dot */
+.today-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#4dd0e1;
+}
+
+/* appointment card */
+.appointment-card{
+  background:#0f1626;
+  border:1px solid #2b3750;
+  border-radius:10px;
+  padding:16px 16px 18px;
+  transition:border-color .15s ease;
+}
+
+.appointment-card:hover{
+  border-color:#4dd0e1;
+}
+
+/* name */
+.patient-name{
+  color:#f4fdff;
+  font-weight:600;
+  font-size:.95rem;
+  margin-bottom:8px;
+}
+
+/* meta */
+.appointment-meta{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:.85rem;
+  color:#c1d7e0;
+}
+
+.appointment-meta i{
+  color:#4dd0e1;
+  width:16px;
+  margin-right:6px;
+}
+
+/* badges */
+.pro-badge-success{
+  background:#0f2d24;
+  color:#4ade80;
+  border:1px solid #1f5b45;
+  font-size:.70rem;
+  font-weight:600;
+  padding:4px 8px;
+  border-radius:6px;
+}
+
+.pro-badge-date{
+  background:#0f2230;
+  color:#7dd3fc;
+  border:1px solid #23475f;
+  font-size:.70rem;
+  font-weight:600;
+  padding:4px 8px;
+  border-radius:6px;
+}
+
+/* consult button */
+.consult-btn{
+  width:100%;
+  background:#0f2e33;
+  color:#4dd0e1;
+  border:1px solid #2a8a93;
+  font-weight:600;
+  font-size:.85rem;
+  padding:9px 0;
+  border-radius:7px;
+  transition:background .15s ease,border-color .15s ease;
+}
+
+.consult-btn:hover{
+  background:#123a40;
+  border-color:#4dd0e1;
+  color:#4dd0e1;
+}
+
+/* empty */
+.empty-icon{
+  font-size:2.4rem;
+  color:#4b6a79;
+}
+
+.empty-title{
+  color:#f1fdff;
+  font-weight:600;
+}
+
+.empty-sub{
+  color:#b7ced8;
+  font-size:.9rem;
+}
+
+</style>
+
+
+<script>
+function consultPatient(id){
+  window.location.href = "/consult/" + id;
+}
+</script>
+
+{% endblock %}

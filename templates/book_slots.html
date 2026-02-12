@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= BACK BUTTON ================= -->
+<div class="profile-back-btn">
+  <a href="/doctor/{{ doctor.id }}" title="Back">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M15 18l-6-6 6-6"
+            stroke="#ffffff"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </svg>
+  </a>
+</div>
+
+<div class="container mt-5">
+  <!-- ===== WALLET & CONSULTATION INFO ===== -->
+  <div class="row mb-4 g-2">
+    <div class="col-md-6">
+      <div class="info-card wallet-info">
+        <div class="info-label">Your Wallet Balance</div>
+        <div class="info-value">₹{{ balance|round(2) }}</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="info-card fee-info">
+        <div class="info-label">Consultation Fee</div>
+        <div class="info-value">₹{{ doctor.fees }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-5 pro-slot-card">
+    <h3 class="text-info mb-4 fw-bold">
+      Book Appointment with Dr. {{ doctor.fname }} {{ doctor.lname }}
+    </h3>
+
+    <!-- ===== DATE SELECTION ===== -->
+    <div class="mb-4">
+      <h5 class="text-white mb-2">Select Date</h5>
+      <div class="date-blocks">
+        {% for date in dates %}
+        <button type="button"
+                class="btn date-btn"
+                data-date="{{ date.date }}">
+          {{ date.display }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ===== TIME SLOT SELECTION ===== -->
+    <div class="mb-4">
+      <h5 class="text-white mb-1">Select Time Slots <small class="text-muted">(Multiple selection allowed)</small></h5>
+      <p class="text-light small mb-3">Select all the appointments you want to book for your family members.</p>
+
+      {% for period, slots in {'Morning':['09:00','10:00','11:00'],'Afternoon':['14:00','15:00','16:00'],'Evening':['18:00','19:00','20:00','22:00']}.items() %}
+      <h6 class="text-info mt-3">{{ period }}</h6>
+      <div class="slot-row">
+        {% for time in slots %}
+        {% set h = time.split(':')[0]|int %}
+        {% set m = time.split(':')[1] %}
+        {% set ampm = 'AM' if h < 12 else 'PM' %}
+        {% set display_h = 12 if h == 0 else (h if h <= 12 else h - 12) %}
+        <button type="button" class="btn slot-btn" data-time="{{ time }}">
+          {{ display_h }}:{{ m }} {{ ampm }}
+        </button>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ===== SELECTED SLOTS ===== -->
+    <div class="selected-slots mb-4" style="display:none;">
+      <h5 class="text-white">Selected Slots</h5>
+      <div id="selected-slots-list" class="selected-slots-list"></div>
+      <div class="mt-3">
+        <button type="button" class="btn btn-outline-danger btn-sm" id="clear-all-slots">
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== PROCEED PAYMENT ===== -->
+    <div class="text-center mt-4">
+      <button type="button" class="btn btn-proceed" id="proceed-payment" disabled>
+        Proceed to Payment (<span id="slot-count">0</span> slots)
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= STYLES ================= -->
+<style>
+/* BACK BUTTON */
+.profile-back-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.profile-back-btn a {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0b1220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,.45);
+  transition: .2s;
+}
+
+.profile-back-btn a:hover {
+  transform: translateX(-3px);
+  background: #111a30;
+}
+
+/* INFO CARDS */
+.info-card {
+  background: linear-gradient(135deg, rgba(77, 208, 225, 0.1) 0%, rgba(77, 208, 225, 0.05) 100%);
+  border: 2px solid rgba(77, 208, 225, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  border-color: rgba(77, 208, 225, 0.6);
+  box-shadow: 0 4px 12px rgba(77, 208, 225, 0.2);
+  transform: translateY(-2px);
+}
+
+.info-label {
+  color: #90a4ae;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  color: #4dd0e1;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* MODAL STYLES */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #121b2d 0%, #1a2940 100%);
+  border-radius: 20px;
+  border: 2px solid rgba(77, 208, 225, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  max-width: 450px;
+  width: 90%;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid rgba(77, 208, 225, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  color: #90a4ae;
+  font-size: 28px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close-modal:hover {
+  color: #4dd0e1;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.balance-info-box {
+  background: rgba(77, 208, 225, 0.08);
+  border: 1px solid rgba(77, 208, 225, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.95rem;
+}
+
+.balance-label {
+  color: #90a4ae;
+  font-weight: 500;
+}
+
+.balance-amount {
+  color: #4dd0e1;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.balance-row.text-danger .balance-amount {
+  color: #ff6b6b;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid rgba(77, 208, 225, 0.15);
+}
+
+.modal-footer .btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.modal-footer .btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #90a4ae;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-footer .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.modal-footer .btn-info {
+  background: linear-gradient(90deg, #4dd0e1, #00bcd4);
+  color: #000;
+  border: none;
+}
+
+.modal-footer .btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(77, 208, 225, 0.3);
+}
+
+/* CARD & CONTAINER */
+.pro-slot-card{
+  background: linear-gradient(135deg,#121b2d,#1a2332);
+  border-radius:20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  border: 1px solid rgba(77,208,225,0.1);
+}
+
+/* DATE BUTTONS */
+.date-blocks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.date-btn{
+  flex:1;
+  min-width:90px;
+  border:1px solid #4dd0e1;
+  color:#4dd0e1;
+  background:transparent;
+  transition: all .25s ease;
+}
+.date-btn:hover{
+  background:rgba(77,208,225,.1);
+}
+.date-btn.active{
+  background:#4dd0e1;
+  color:#000;
+  transform:scale(1.05);
+}
+
+/* TIME SLOT ROW */
+.slot-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:10px;
+}
+.slot-btn{
+  flex:1;
+  min-width:80px;
+  border:1px solid #4dd0e1;
+  color:#4dd0e1;
+  background:transparent;
+  transition:all .25s ease, transform .2s ease;
+}
+.slot-btn:hover{
+  background:rgba(77,208,225,.1);
+}
+.slot-btn.selected{
+  background:#4dd0e1;
+  color:#000;
+  border-color:#4dd0e1;
+  transform:scale(1.05);
+}
+.slot-btn.default-disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 107, 107, 0.15) !important;
+  border-color: rgba(255, 107, 107, 0.5) !important;
+  color: rgba(255, 107, 107, 0.7) !important;
+  filter: blur(0.5px);
+  position: relative;
+}
+
+.slot-btn.default-disabled::after {
+  content: 'SELECT DATE';
+  position: absolute;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.slot-btn.default-disabled:hover {
+  background: rgba(255, 107, 107, 0.2) !important;
+  cursor: not-allowed;
+}
+
+.slot-btn.booked-slot{
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 107, 107, 0.15) !important;
+  border-color: rgba(255, 107, 107, 0.5) !important;
+  color: rgba(255, 107, 107, 0.7) !important;
+  filter: blur(0.5px);
+  position: relative;
+}
+
+.slot-btn.booked-slot::after {
+  content: 'BOOKED';
+  position: absolute;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.slot-btn.booked-slot:hover {
+  background: rgba(255, 107, 107, 0.2) !important;
+  cursor: not-allowed;
+}
+
+.slot-btn.past-slot{
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(128, 128, 128, 0.15) !important;
+  border-color: rgba(128, 128, 128, 0.5) !important;
+  color: rgba(128, 128, 128, 0.7) !important;
+  filter: blur(0.5px);
+  position: relative;
+}
+
+.slot-btn.past-slot::after {
+  content: 'PASSED';
+  position: absolute;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.slot-btn.past-slot:hover {
+  background: rgba(255, 107, 107, 0.2) !important;
+  cursor: not-allowed;
+}
+
+/* SELECTED SLOTS */
+.selected-slots{
+  background:rgba(77,208,225,.05);
+  padding:15px;
+  border-radius:12px;
+  border:1px solid rgba(77,208,225,.2);
+}
+.selected-slots-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.slot-item{
+  background:rgba(77,208,225,.15);
+  padding:10px 14px;
+  border-radius:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:.9rem;
+  transition:all .2s ease;
+}
+.slot-item .remove-slot{
+  background:none;
+  border:none;
+  color:#ff6b6b;
+  font-size:1.2rem;
+  cursor:pointer;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* PROCEED BUTTON */
+.btn-proceed{
+  background: linear-gradient(135deg,#4dd0e1,#26a69a);
+  border:none;
+  font-weight:bold;
+  padding:12px 28px;
+  border-radius:10px;
+  font-size:1.1rem;
+  transition:all .3s ease;
+}
+.btn-proceed:hover{
+  background: linear-gradient(135deg,#26a69a,#4dd0e1);
+  transform:scale(1.02);
+}
+
+/* TEXT */
+.text-white{ color:#E0F7FA !important; }
+.text-light{ color:#B0BEC5 !important; }
+.text-info{ color:#4DD0E1 !important; }
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .slot-btn, .date-btn{ flex:1 1 100%; }
+}
+</style>
+
+<!-- ===== INSUFFICIENT BALANCE MODAL ===== -->
+    <div id="insufficientBalanceModal" class="modal-overlay" style="display:none;">
+      <div class="modal-content insufficient-balance-modal">
+        <div class="modal-header">
+          <h5 class="text-warning"><i class="fa-solid fa-exclamation-triangle me-2"></i>Insufficient Wallet Balance</h5>
+          <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-light mb-3">Your wallet balance is insufficient to complete this booking.</p>
+          <div class="balance-info-box mb-4">
+            <div class="balance-row">
+              <span class="balance-label">Required Amount:</span>
+              <span class="balance-amount" id="requiredAmount">₹0</span>
+            </div>
+            <div class="balance-row">
+              <span class="balance-label">Your Balance:</span>
+              <span class="balance-amount" id="yourBalance">₹{{ balance|round(2) }}</span>
+            </div>
+            <div class="balance-row text-danger" style="border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; margin-top:10px;">
+              <span class="balance-label">Shortfall:</span>
+              <span class="balance-amount" id="shortfall">₹0</span>
+            </div>
+          </div>
+          <p class="text-secondary small mb-4"><i class="fa-solid fa-info-circle me-2"></i>You can add funds to your wallet or try again later with sufficient balance.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()"><i class="fa-solid fa-arrow-left me-2"></i>Go Back</button>
+          <a id="walletLink" class="btn btn-info"><i class="fa-solid fa-wallet me-2"></i>Add Funds</a>
+        </div>
+      </div>
+    </div>
+
+  <script data-booked-slots='{{ booked_slots|tojson }}'>
+
+const doctorFee = parseFloat('{{ doctor.fees if doctor.fees else 0 }}');
+const currentBalance = parseFloat('{{ balance|round(2) if balance else 0 }}');
+
+function closeModal() {
+  document.getElementById('insufficientBalanceModal').style.display = 'none';
+}
+
+function showInsufficientBalanceModal(requiredAmount) {
+  const shortfall = requiredAmount - currentBalance;
+
+  document.getElementById('requiredAmount').textContent = '₹' + requiredAmount.toFixed(2);
+  document.getElementById('yourBalance').textContent = '₹' + currentBalance.toFixed(2);
+  document.getElementById('shortfall').textContent = '₹' + shortfall.toFixed(2);
+
+  const currentPageUrl = window.location.href;
+  document.getElementById('walletLink').href =
+      '/wallet?back=' + encodeURIComponent(currentPageUrl);
+
+  document.getElementById('insufficientBalanceModal').style.display = 'flex';
+}
+
+document.getElementById('insufficientBalanceModal').addEventListener('click', e=>{
+  if(e.target.id==='insufficientBalanceModal') closeModal();
+});
+
+
+/* ---------------- CORE FIX ---------------- */
+
+let selectedDate = '';
+let selectedSlots = [];
+
+const booked_slots =
+  JSON.parse(document.currentScript.dataset.bookedSlots || '{}');
+
+const slotBtns = document.querySelectorAll('.slot-btn');
+const dateBtns = document.querySelectorAll('.date-btn');
+
+
+/* ---- disable all slots initially ---- */
+slotBtns.forEach(btn=>{
+  btn.disabled = true;
+  btn.classList.add('default-disabled');
+});
+
+
+/* ---- DATE CLICK ---- */
+dateBtns.forEach(btn=>{
+  btn.addEventListener('click', function(){
+
+    dateBtns.forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+
+    selectedDate = this.dataset.date;
+    selectedSlots = [];
+
+    slotBtns.forEach(b=>{
+      b.disabled = false;
+      b.classList.remove(
+        'selected',
+        'default-disabled',
+        'booked-slot',
+        'past-slot'
+      );
+    });
+
+    refreshSlots();
+    updateSelectedSlots();
+  });
+});
+
+
+/* ---- SLOT CLICK ---- */
+slotBtns.forEach(btn=>{
+  btn.addEventListener('click', function(){
+
+    if(this.disabled) return;
+
+    const time = this.dataset.time;
+
+    const i = selectedSlots.findIndex(
+      s => s.date===selectedDate && s.time===time
+    );
+
+    if(i>-1){
+      selectedSlots.splice(i,1);
+      this.classList.remove('selected');
+    }else{
+      selectedSlots.push({date:selectedDate,time});
+      this.classList.add('selected');
+    }
+
+    updateSelectedSlots();
+  });
+});
+
+
+/* ---------- MAIN FIXED LOGIC ---------- */
+
+function refreshSlots(){
+
+  const now = new Date();
+  const today = now.toLocaleDateString('en-CA');
+  const currentMin = now.getHours()*60 + now.getMinutes();
+
+  slotBtns.forEach(btn=>{
+
+    const time = btn.dataset.time;
+    const [h,m] = time.split(':').map(Number);
+    const slotMin = h*60 + m;
+
+    btn.disabled = false;
+
+    btn.classList.remove('booked-slot','past-slot','default-disabled');
+
+    /* past date */
+    if(selectedDate < today){
+      btn.disabled = true;
+      btn.classList.add('past-slot');
+      btn.classList.remove('selected');
+      return;
+    }
+
+    /* today but past time */
+    if(selectedDate === today && slotMin <= currentMin){
+      btn.disabled = true;
+      btn.classList.add('past-slot');
+      btn.classList.remove('selected');
+      return;
+    }
+
+    /* booked slot */
+    if(
+      booked_slots[selectedDate] &&
+      booked_slots[selectedDate].includes(time)
+    ){
+      btn.disabled = true;
+      btn.classList.add('booked-slot');
+      btn.classList.remove('selected');
+      return;
+    }
+
+  });
+
+}
+
+
+/* ---- SELECTED LIST ---- */
+
+function updateSelectedSlots(){
+
+  const list = document.getElementById('selected-slots-list');
+  const wrap = document.querySelector('.selected-slots');
+  const count = document.getElementById('slot-count');
+  const payBtn = document.getElementById('proceed-payment');
+
+  list.innerHTML='';
+
+  if(!selectedSlots.length){
+    wrap.style.display='none';
+    count.textContent='0';
+    payBtn.disabled=true;
+    return;
+  }
+
+  selectedSlots.forEach((slot,i)=>{
+
+    const d = new Date(slot.date+'T'+slot.time);
+
+    const text = d.toLocaleString('en-US',{
+      weekday:'short',
+      month:'short',
+      day:'numeric',
+      hour:'numeric',
+      minute:'2-digit'
+    });
+
+    const div=document.createElement('div');
+    div.className='slot-item';
+    div.innerHTML=
+      `<span>${text}</span>
+       <button type="button" class="remove-slot" data-index="${i}">×</button>`;
+
+    list.appendChild(div);
+  });
+
+  wrap.style.display='block';
+  count.textContent=selectedSlots.length;
+  payBtn.disabled=false;
+}
+
+
+/* ---- remove single ---- */
+document.addEventListener('click', e=>{
+
+  if(!e.target.classList.contains('remove-slot')) return;
+
+  const i = Number(e.target.dataset.index);
+  const removed = selectedSlots.splice(i,1)[0];
+
+  slotBtns.forEach(btn=>{
+    if(btn.dataset.time===removed.time){
+      btn.classList.remove('selected');
+    }
+  });
+
+  updateSelectedSlots();
+});
+
+
+/* ---- clear all ---- */
+document.getElementById('clear-all-slots')
+.addEventListener('click', ()=>{
+
+  selectedSlots=[];
+  slotBtns.forEach(b=>b.classList.remove('selected'));
+  updateSelectedSlots();
+
+});
+
+
+/* ---- proceed ---- */
+document.getElementById('proceed-payment')
+.addEventListener('click', function(){
+
+  if(!selectedSlots.length){
+    alert('Please select at least one slot.');
+    return;
+  }
+
+  const requiredAmount = selectedSlots.length * doctorFee;
+
+  if(currentBalance < requiredAmount){
+    showInsufficientBalanceModal(requiredAmount);
+    return;
+  }
+
+  const form=document.createElement('form');
+  form.method='POST';
+  form.action='/payment';
+
+  const d=document.createElement('input');
+  d.type='hidden';
+  d.name='doctor_id';
+  d.value='{{ doctor.id }}';
+  form.appendChild(d);
+
+  const c=document.createElement('input');
+  c.type='hidden';
+  c.name='slot_count';
+  c.value=selectedSlots.length;
+  form.appendChild(c);
+
+  selectedSlots.forEach((s,i)=>{
+    const di=document.createElement('input');
+    di.type='hidden';
+    di.name=`date_${i}`;
+    di.value=s.date;
+    form.appendChild(di);
+
+    const ti=document.createElement('input');
+    ti.type='hidden';
+    ti.name=`time_${i}`;
+    ti.value=s.time;
+    form.appendChild(ti);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+});
+
+</script>
+
+
+<!-- ================= FONT AWESOME ================= -->
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">
+
+{% endblock %}

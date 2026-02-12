@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Chat with Dr. {{ doctor.fname }} {{ doctor.lname }}</h5>
+          <small class="text-white-50">{{ doctor.specialty }}</small>
+        </div>
+        <div class="card-body" style="height: 400px; overflow-y: auto;" id="chatMessages">
+          <!-- Chat messages will appear here -->
+          <div class="text-center text-muted mt-5">
+            <i class="fas fa-comments fa-3x mb-3"></i>
+            <p>Start a conversation with your doctor</p>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="input-group">
+            <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." maxlength="500">
+            <button class="btn btn-primary" type="button" id="sendButton">
+              <i class="fas fa-paper-plane"></i> Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simple chat simulation (in a real app, this would use WebSockets or AJAX)
+document.getElementById('sendButton').addEventListener('click', function() {
+  const messageInput = document.getElementById('messageInput');
+  const message = messageInput.value.trim();
+
+  if (message) {
+    // Add user message
+    addMessage(message, 'user');
+    messageInput.value = '';
+
+    // Simulate doctor response (in real app, this would come from server)
+    setTimeout(() => {
+      addMessage("Thank you for your message. Dr. {{ doctor.fname }} will respond shortly.", 'doctor');
+    }, 1000);
+  }
+});
+
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    document.getElementById('sendButton').click();
+  }
+});
+
+function addMessage(text, sender) {
+  const chatMessages = document.getElementById('chatMessages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message mb-3`;
+
+  const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+  messageDiv.innerHTML = `
+    <div class="d-flex ${sender === 'user' ? 'justify-content-end' : 'justify-content-start'}">
+      <div class="message-bubble ${sender === 'user' ? 'bg-primary text-white' : 'bg-light text-dark'} p-3 rounded">
+        <div class="message-text">${text}</div>
+        <small class="text-muted">${timestamp}</small>
+      </div>
+    </div>
+  `;
+
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+</script>
+
+<style>
+.message-bubble {
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.message.user-message .message-bubble {
+  margin-left: auto;
+}
+
+.message.doctor-message .message-bubble {
+  margin-right: auto;
+}
+
+.message-text {
+  margin-bottom: 5px;
+}
+
+#chatMessages::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chatMessages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#chatMessages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+#chatMessages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+</style>
+{% endblock %}

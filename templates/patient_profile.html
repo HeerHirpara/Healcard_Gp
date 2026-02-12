@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= BACK BUTTON ================= -->
+<div class="profile-back-btn">
+  <a href="/dashboard" title="Back">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M15 18l-6-6 6-6"
+            stroke="#ffffff"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </svg>
+  </a>
+</div>
+
+<div class="container mt-4">
+
+  <!-- Patient Profile Card -->
+  <div class="card p-4 patient-profile-card">
+
+    <h3 class="text-info mb-4">
+      <i class="fa-solid fa-user-circle"></i> My Profile
+    </h3>
+
+    <!-- Personal Information -->
+    <div class="profile-section mb-4">
+      <h5 class="text-info mb-3">
+        <i class="fa-solid fa-id-card"></i> Personal Information
+      </h5>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">First Name:</strong>
+            <span>{{ user.fname or 'Not provided' }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Last Name:</strong>
+            <span>{{ user.lname or 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Middle Name:</strong>
+            <span>{{ user.mname or 'Not provided' }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Date of Birth:</strong>
+            <span>{{ user.dob or 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Age:</strong>
+            <span>{{ user.age or 'Not provided' }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Email:</strong>
+            <span>{{ user.email or 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Address Information -->
+    <div class="profile-section mb-4">
+      <h5 class="text-info mb-3">
+        <i class="fa-solid fa-map-marker-alt"></i> Address Information
+      </h5>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">City:</strong>
+            <span>{{ user.patient_city or 'Not provided' }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">State:</strong>
+            <span>{{ user.patient_state or 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Pincode:</strong>
+            <span>{{ user.patient_pincode or 'Not provided' }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Full Address:</strong>
+            <span>{{ user.patient_address or 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% if user.patient_latitude and user.patient_longitude %}
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Latitude:</strong>
+            <span>{{ user.patient_latitude }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Longitude:</strong>
+            <span>{{ user.patient_longitude }}</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Account Information -->
+    <div class="profile-section mb-4">
+      <h5 class="text-info mb-3">
+        <i class="fa-solid fa-shield-alt"></i> Account Information
+      </h5>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Role:</strong>
+            <span class="badge bg-info">{{ user.role.title() }}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="profile-item">
+            <strong class="text-info">Account Status:</strong>
+            <span class="badge bg-success">Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center mt-4">
+      <button class="btn btn-info" onclick="editProfile()">
+        <i class="fa-solid fa-edit"></i> Edit Profile
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+body{
+  background:#0e111a !important;
+  color:#cfefff !important;
+}
+
+/* main card */
+.patient-profile-card{
+  background:rgba(18, 27, 45, 0.8);
+  border-radius:18px;
+  border:1px solid rgba(34, 50, 74, 0.5);
+  box-shadow:0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+/* back button */
+.prev-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#121b2d;
+  border:1px solid #22324a;
+  color:#cfefff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .18s ease;
+}
+
+.prev-btn:hover{
+  border-color:#4dd0e1;
+  color:#4dd0e1;
+  background:#121b2d;
+  transform:translateX(-3px);
+}
+
+.prev-btn:active{
+  transform:translateX(-5px) scale(.96);
+}
+
+.prev-btn:focus{
+  box-shadow:none;
+  outline:none;
+}
+
+/* section */
+.profile-section{
+  background:rgba(14, 17, 26, 0.8);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+  border:1px solid rgba(34, 50, 74, 0.5);
+  box-shadow:0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+/* section title */
+.profile-section h5{
+  border-bottom:1px solid #22324a;
+  padding-bottom:10px;
+  margin-bottom:18px;
+  color:#4dd0e1;
+}
+
+/* item row */
+.profile-item{
+  background:rgba(18, 27, 45, 0.9);
+  border-radius:10px;
+  padding:14px 16px;
+  margin-bottom:14px;
+  border:1px solid rgba(34, 50, 74, 0.6);
+  box-shadow:0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+  transition:transform .15s ease;
+}
+
+.profile-item:hover{
+  transform:translateY(-1px);
+}
+
+/* labels */
+.profile-item strong{
+  color:#4dd0e1;
+  display:block;
+  margin-bottom:4px;
+  font-weight:600;
+}
+
+/* values */
+.profile-item span{
+  color:#cfefff;
+  font-size:15px;
+}
+
+/* badges */
+.badge.bg-info{
+  background:#4dd0e1 !important;
+  color:#081018 !important;
+  font-weight:600;
+}
+
+.badge.bg-success{
+  background:#26a69a !important;
+  color:#081018 !important;
+  font-weight:600;
+}
+
+/* edit button – flat */
+.btn-info{
+  background:#4dd0e1;
+  border:none;
+  border-radius:12px;
+  padding:11px 26px;
+  font-weight:600;
+  color:#081018;
+  box-shadow:none;
+  transition:all .18s ease;
+}
+
+.btn-info:hover{
+  background:#26a69a;
+  color:#081018;
+  transform:translateY(-1px);
+}
+
+@media (max-width:768px){
+  .patient-profile-card{
+    margin:10px;
+    padding:18px;
+  }
+
+  .profile-section{
+    padding:14px;
+  }
+
+  .profile-item{
+    padding:12px 14px;
+  }
+}
+
+/* back button */
+
+.profile-back-btn{
+  position:fixed;
+  top:16px;
+  left:16px;
+  z-index:10;
+}
+
+.profile-back-btn a{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#0b1220;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(0,0,0,.45);
+  transition:.2s;
+}
+
+.profile-back-btn a:hover{
+  transform:translateX(-3px);
+  background:#111a30;
+}
+</style>
+
+
+
+<script>
+function editProfile() {
+  window.location.href = '/profile/edit';
+}
+</script>
+
+{% endblock %}

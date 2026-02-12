@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Back Button -->
+
+<div class="position-fixed top-0 start-0 p-3" style="z-index:1050;">
+  <button class="btn prev-btn" onclick="window.history.back()" aria-label="Previous">
+    <i class="fa-solid fa-arrow-left"></i>
+  </button>
+</div>
+
+
+
+<div class="container mt-4">
+  <h2 class="text-info mb-4">Appointment Notifications</h2>
+
+  {% if notifications %}
+    <div class="row g-3">
+      {% for notification in notifications %}
+      <div class="col-md-12">
+        <div class="card notification-card p-3">
+          {% if session.get('role') == 'doctor' and notification.type == 'appointment_request' %}
+          <!-- Doctor View with Accept/Reject Buttons -->
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h5 class="text-info mb-2">New Appointment Request</h5>
+              <p class="text-white mb-2">{{ notification.message }}</p>
+              <small class="text-secondary">
+                Received: {{ notification.created_at }}
+              </small>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-success btn-sm accept-btn" data-appointment-id="{{ notification.appointment_id }}">
+                <i class="fa-solid fa-check"></i> Accept
+              </button>
+              <button type="button" class="btn btn-danger btn-sm reject-btn" data-appointment-id="{{ notification.appointment_id }}">
+                <i class="fa-solid fa-times"></i> Reject
+              </button>
+            </div>
+          </div>
+          {% else %}
+          <!-- Patient View - Simple Notification Display -->
+          <div>
+            <h5 class="text-info mb-2">Appointment Update</h5>
+            <p class="text-white mb-2">{{ notification.message }}</p>
+            <small class="text-secondary">
+              Received: {{ notification.created_at }}
+            </small>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card p-4 text-center no-notifications">
+      <h5 class="text-white">No new notifications</h5>
+      {% if session.get('role') == 'doctor' %}
+      <p class="text-white">You'll see appointment requests here when patients book with you.</p>
+      {% else %}
+      <p class="text-white">You'll see appointment updates here when doctors respond to your bookings.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+
+</div>
+
+<style>
+.notification-card {
+  background:#121b2d;
+  border-radius:15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid #2c3e50;
+}
+.notification-card:hover {
+  transform: translateY(-2px);
+  transition: 0.3s;
+}
+.modal-content {
+  background: #121b2d;
+  color: white;
+  border: 1px solid #4dd0e1;
+}
+.modal-header {
+  border-bottom: 1px solid #4dd0e1;
+}
+.modal-footer {
+  border-top: 1px solid #4dd0e1;
+}
+.prev-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#121b2d;
+  border:1px solid #22324a;
+  color:#cfefff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .25s ease;
+}
+
+.prev-btn:hover{
+  transform:translateX(-6px);
+  border-color:#4dd0e1;
+  color:#4dd0e1;
+  background:#121b2d;
+}
+
+.prev-btn:active{
+  transform:translateX(-10px) scale(.95);
+}
+
+.prev-btn:focus{
+  box-shadow:none;
+  outline:none;
+}
+
+.no-notifications {
+  background: transparent;
+  border: 1px solid #4dd0e1;
+  color: white;
+}
+
+</style>
+
+<script>
+// Add event listeners for accept and reject buttons
+document.addEventListener('DOMContentLoaded', function() {
+  // Accept buttons - directly submit without modal
+  document.querySelectorAll('.accept-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const appointmentId = this.getAttribute('data-appointment-id');
+      if (appointmentId) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/accept_appointment/${appointmentId}`;
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+  });
+
+  // Reject buttons - directly submit without modal
+  document.querySelectorAll('.reject-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const appointmentId = this.getAttribute('data-appointment-id');
+      if (appointmentId) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/reject_appointment/${appointmentId}?delete_notification=true`;
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}
