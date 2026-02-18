@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= DYNAMIC BACK BUTTON ================= -->
+<div class="profile-back-btn">
+  <a href="javascript:history.back()" title="Back">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M15 18l-6-6 6-6"
+            stroke="#ffffff"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </svg>
+  </a>
+</div>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/dashboard">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" width="40" height="40"
+           class="rounded-circle me-2" alt="MedStash Logo">
+      <span class="fw-bold text-info">MedStash</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarIcons">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarIcons">
+      <ul class="navbar-nav text-center">
+        <li class="nav-item mx-2"><a class="nav-link" href="/dashboard"><i class="fa-solid fa-house fa-lg"></i><br><small>Home</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link active" href="/appointments"><i class="fa-solid fa-calendar-check fa-lg"></i><br><small>Appointments</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="/history"><i class="fa-solid fa-clock-rotate-left fa-lg"></i><br><small>History</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="/wallet"><i class="fa-solid fa-wallet fa-lg"></i><br><small>Wallet</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="/profile"><i class="fa-solid fa-user fa-lg"></i><br><small>Profile</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket fa-lg"></i><br><small>Logout</small></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<div class="container mt-5 mb-5">
+
+  <!-- ================= PAGE HEADER ================= -->
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="text-info fw-bold">
+        <i class="fa-solid fa-calendar-days me-2"></i>My Appointments
+      </h2>
+      <p class="text-secondary">View and manage all your upcoming appointments</p>
+    </div>
+  </div>
+
+  <!-- ================= PENDING APPOINTMENTS ================= -->
+  {% if pending_appointments %}
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card dashboard-card p-4">
+        <div class="d-flex align-items-center mb-3">
+          <h5 class="text-warning mb-0">
+            <i class="fa-solid fa-clock me-2"></i>Pending Confirmation
+          </h5>
+          <span class="badge bg-warning text-dark ms-2">{{ pending_appointments|length }}</span>
+        </div>
+        <div class="appointments-list">
+          {% for appointment in pending_appointments %}
+          <div class="appointment-card pending-card mb-3 p-4">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h6 class="text-warning mb-2"><i class="fa-solid fa-user-md me-2"></i>Dr. {{ appointment.doctor_fname }} {{ appointment.doctor_lname }}</h6>
+                <p class="mb-1 text-secondary small"><i class="fa-solid fa-stethoscope me-2"></i>{{ appointment.specialty }}</p>
+                <p class="mb-1 small"><i class="fa-solid fa-calendar me-2"></i>{{ appointment.date }} at <strong>{{ appointment.time }}</strong></p>
+                {% if appointment.address %}
+                <p class="mb-0 text-light small"><i class="fa-solid fa-map-marker-alt me-2"></i>{{ appointment.address }}</p>
+                {% endif %}
+              </div>
+              <div class="col-md-4 text-end">
+                <span class="badge bg-warning text-dark fs-6 px-3 py-2 d-block mb-2"><i class="fa-solid fa-hourglass-end me-1"></i>Pending</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ================= TODAY'S APPOINTMENTS ================= -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card dashboard-card p-4">
+        <div class="d-flex align-items-center mb-3">
+          <h5 class="text-orange mb-0"><i class="fa-solid fa-exclamation-circle me-2"></i>Today's Appointments</h5>
+          <span class="badge bg-orange text-dark ms-2">{{ todays_appointments|length }}</span>
+        </div>
+
+        {% if todays_appointments %}
+          <div class="appointments-list">
+            {% for appointment in todays_appointments %}
+            <div class="appointment-card today-card pro-today-card p-4 mb-3">
+              <div class="row align-items-center g-3">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="doctor-mini-avatar">
+                      <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="pro-doctor-name mb-2">Dr. {{ appointment.doctor_fname }} {{ appointment.doctor_lname }}</h6>
+                      <div class="pro-meta-row mb-2">
+                        <span class="pro-meta-chip"><i class="fa-solid fa-stethoscope me-1"></i>{{ appointment.specialty }}</span>
+                        <span class="pro-meta-chip"><i class="fa-solid fa-clock me-1"></i>Today at {{ appointment.time }}</span>
+                      </div>
+                      {% if appointment.address %}
+                      <p class="mb-0 pro-address"><i class="fa-solid fa-map-marker-alt me-2"></i>{{ appointment.address }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                  <span class="badge pro-today-badge fs-6 px-3 py-2 mb-3 d-inline-block d-md-block">
+                    <i class="fa-solid fa-bolt me-1"></i>Today
+                  </span>
+                  <button class="btn btn-sm pro-cancel-btn w-100 cancel-btn" data-appointment-id="{{ appointment.id }}">
+                    <i class="fa-solid fa-trash me-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-3">
+            <p class="text-muted mb-0">No appointments scheduled for today.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= UPCOMING APPOINTMENTS ================= -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card dashboard-card p-4">
+        <div class="d-flex align-items-center mb-3">
+          <h5 class="text-info mb-0"><i class="fa-solid fa-calendar-check me-2"></i>Upcoming Appointments</h5>
+          <span class="badge bg-info text-dark ms-2">{{ future_appointments|length }}</span>
+        </div>
+
+        {% if future_appointments %}
+          <div class="appointments-list">
+            {% for appointment in future_appointments %}
+            <div class="appointment-card future-card p-4 mb-3">
+              <div class="row align-items-center">
+                <div class="col-md-8">
+                  <h6 class="text-info mb-2"><i class="fa-solid fa-user-md me-2"></i>Dr. {{ appointment.doctor_fname }} {{ appointment.doctor_lname }}</h6>
+                  <p class="mb-1 text-secondary small"><i class="fa-solid fa-stethoscope me-2"></i>{{ appointment.specialty }}</p>
+                  <p class="mb-1 small"><i class="fa-solid fa-calendar me-2"></i>{{ appointment.date }} at <strong>{{ appointment.time }}</strong></p>
+                  {% if appointment.address %}
+                  <p class="mb-0 text-light small"><i class="fa-solid fa-map-marker-alt me-2"></i>{{ appointment.address }}</p>
+                  {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                  <span class="badge bg-success fs-6 px-3 py-2 mb-2 d-block"><i class="fa-solid fa-check-circle me-1"></i>Confirmed</span>
+                  <div class="btn-group btn-group-sm w-100" role="group">
+                    <button class="btn btn-outline-info reschedule-btn" data-appointment-id="{{ appointment.id }}"><i class="fa-solid fa-redo me-1"></i>Reschedule</button>
+                    <button class="btn btn-outline-danger cancel-btn" data-appointment-id="{{ appointment.id }}"><i class="fa-solid fa-trash me-1"></i>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-3">
+            <p class="text-muted mb-0">No future appointments scheduled.</p>
+          </div>
+        {% endif %}
+
+        {% if not todays_appointments and not future_appointments and not pending_appointments %}
+          <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-xmark fa-3x text-secondary mb-3"></i>
+            <h5 class="text-secondary">No Appointments</h5>
+            <p class="text-muted">You don't have any appointments scheduled.</p>
+            <a href="/dashboard" class="btn btn-info mt-3"><i class="fa-solid fa-plus me-2"></i>Book New Appointment</a>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer class="text-center text-secondary mt-5 mb-3">
+  © 2026 MedStash • Smart Healthcare Record System
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body { background:#0b0f1a; color:white; font-family:'Outfit',sans-serif; }
+.navbar { background:#121b2d !important; }
+.navbar a { color:white; transition:0.3s; }
+.navbar a:hover, .navbar a.active { color:#4dd0e1; }
+.text-orange{ color:#fb923c !important; }
+.bg-orange{ background:#fb923c !important; }
+.dashboard-card { background:#121b2d; box-shadow:0 6px 16px rgba(0,0,0,0.5); border-radius:16px; border:1px solid rgba(77,208,225,0.1); }
+.appointment-card { background: linear-gradient(135deg,#1e293b,#334155); transition:all .3s ease; border-radius:12px; }
+.appointment-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(77,208,225,0.25); border-color: rgba(77,208,225,0.3); }
+.today-card { background:linear-gradient(135deg,#d97706,#ea580c) !important; border-color:#fbbf24 !important; }
+.pro-today-card{ box-shadow:0 14px 28px rgba(234,88,12,.28); border:1px solid rgba(255,255,255,.15); }
+.doctor-mini-avatar{ width:48px; height:48px; border-radius:12px; background:rgba(11,15,26,.22); display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; border:1px solid rgba(255,255,255,.25); flex-shrink:0; }
+.pro-doctor-name{ color:#fff; font-weight:700; letter-spacing:.2px; }
+.pro-meta-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.pro-meta-chip{ background:rgba(11,15,26,.2); border:1px solid rgba(255,255,255,.22); color:#fff; font-size:12px; border-radius:999px; padding:5px 10px; }
+.pro-address{ color:#f5f5f5; font-size:13px; opacity:.95; }
+.pro-today-badge{ background:#fff3cd; color:#7c2d12; font-weight:700; border:1px solid rgba(124,45,18,.2); }
+.pro-cancel-btn{ border:1px solid rgba(255,255,255,.55); color:#fff; background:rgba(11,15,26,.18); transition:all .2s ease; }
+.pro-cancel-btn:hover{ background:#ef4444; color:#fff; border-color:#ef4444; }
+.future-card { background:linear-gradient(135deg,#065f46,#064e3b) !important; border-color:#10b981 !important; }
+.pending-card { background:linear-gradient(135deg,#78350f,#451a03) !important; border-color:#f59e0b !important; animation:pulse-pending 2s ease-in-out infinite; }
+@keyframes pulse-pending { 0%,100%{opacity:1;} 50%{opacity:0.85;} }
+.profile-back-btn{position:fixed;top:16px;left:16px;z-index:10;}
+.profile-back-btn a{width:44px;height:44px;border-radius:50%;background:#0b1220;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(0,0,0,.45);transition:.2s;}
+.profile-back-btn a:hover{transform:translateX(-3px);background:#111a30;}
+.badge { font-size:12px; font-weight:600; white-space:nowrap; }
+.btn-group .btn { font-size:12px; padding:6px 10px; transition:all .2s ease; }
+.btn-outline-info:hover { background:#4dd0e1; color:#000; border-color:#4dd0e1; }
+.btn-outline-danger:hover { background:#ef4444; color:#fff; border-color:#ef4444; }
+@media(max-width:768px){
+  .appointment-card { margin-bottom:12px; }
+  .doctor-mini-avatar{ width:42px; height:42px; border-radius:10px; font-size:16px; }
+  .pro-doctor-name{ font-size:15px; }
+  .btn-group { display:flex; flex-direction:column; }
+  .btn-group .btn { width:100%; margin-bottom:4px; }
+  .col-md-4 { margin-top:15px; }
+}
+</style>
+
+<script>
+document.addEventListener('click', function(e) {
+  if(e.target.closest('.cancel-btn')) {
+    const btn = e.target.closest('.cancel-btn');
+    const appointmentId = btn.dataset.appointmentId;
+    if(confirm('Are you sure you want to cancel this appointment?')){
+      fetch(`/cancel_appointment/${appointmentId}`,{method:'POST'})
+      .then(r=>{ if(r.ok) location.reload(); else alert('Failed to cancel.'); })
+      .catch(()=>alert('Error occurred.'));
+    }
+  }
+  if(e.target.closest('.reschedule-btn')) {
+    alert('Reschedule feature coming soon. Please cancel and rebook if needed.');
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,594 @@
+ {% extends "base.html" %}
+
+{% block content %}
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#121b2d;">
+  <div class="container-fluid">
+
+    <!-- LOGO -->
+    <a class="navbar-brand d-flex align-items-center" href="/dashboard">
+      <img src="{{ url_for('static', filename='images/logo.png') }}"
+           width="40" height="40"
+           class="rounded-circle me-2"
+           alt="MedStash Logo">
+      <span class="fw-bold text-info">MedStash</span>
+    </a>
+
+    <!-- TOGGLE -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarIcons">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- ICON LINKS -->
+    <div class="collapse navbar-collapse justify-content-end" id="navbarIcons">
+      <ul class="navbar-nav text-center">
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/dashboard">
+            <i class="fa-solid fa-house fa-lg"></i><br><small>Home</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/appointments">
+            <i class="fa-solid fa-calendar-check fa-lg"></i><br><small>Appointments</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/history">
+            <i class="fa-solid fa-clock-rotate-left fa-lg"></i><br><small>History</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/patient_prescriptions">
+            <i class="fa-solid fa-prescription-bottle-medical fa-lg"></i><br><small>Prescriptions</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/profile">
+            <i class="fa-solid fa-user fa-lg"></i><br><small>Profile</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/notifications">
+            <i class="fa-solid fa-bell fa-lg"></i>{% if notifications_count > 0 %}<span class="badge bg-danger">{{ notifications_count }}</span>{% endif %}<br><small>Notifications</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/wallet">
+            <i class="fa-solid fa-wallet fa-lg"></i><br><small>Wallet</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/logout">
+            <i class="fa-solid fa-right-from-bracket fa-lg"></i><br><small>Logout</small>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<div class="container mt-4">
+
+  <!-- GREETING CARD -->
+  <div id="greetingCard" class="card shadow-lg p-4 position-relative mb-4">
+    <button onclick="this.parentElement.style.display='none'"
+            class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2">×</button>
+
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="greeting-emoji" style="font-size:3rem;">👋</div>
+      <div>
+        <h3 class="text-info fw-bold mb-1">{{ greeting }}, {{ name }}</h3>
+        <p class="mb-0 text-secondary">Manage your health records and consultations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CONSULT SLIDER ================= -->
+  <div class="card section-card p-4 mb-4">
+    <h5 class="text-info mb-3">Consult a Doctor</h5>
+
+    <div class="slider-wrapper">
+
+      <!-- Left Arrow -->
+      <span class="slider-arrow left" onclick="slideLeft()">&#10094;</span>
+
+      <!-- Slider -->
+      <div class="slider" id="serviceSlider">
+        {% set services = [
+          ("period.svg", "Gynaecology", "Rs 500"),
+          ("gas.svg", "Gastrology", "Rs 200"),
+          ("gp.svg", "General Physician", "Rs 200"),
+          ("acne.png", "Dermatology", "Rs 500"),
+          ("mental.png", "Psychiatry", "Rs 200"),
+          ("urology.svg", "Urology", "Rs 500"),
+          ("cold.png", "Cold & Fever", "Rs 500"),
+          ("child.svg", "Child Care", "Rs 500")
+        ] %}
+
+        {% for icon, title, price in services %}
+
+       <a href="{% if profile_percent < 100 %}/profile/edit{% else %}/doctors/{{ title }}{% endif %}"
+   class="service-card text-decoration-none"
+   style="color:inherit;">
+
+  <img src="{{ url_for('static', filename='icons/' + icon) }}" alt="{{ title }}">
+  <h6>{{ title }}</h6>
+  <p class="price">{{ price }}</p>
+  <span class="consult-link">{% if profile_percent < 100 %}Complete Profile{% else %}Consult now{% endif %} →</span>
+
+</a>
+
+        {% endfor %}
+      </div>
+
+      <!-- Right Arrow -->
+      <span class="slider-arrow right" onclick="slideRight()">&#10095;</span>
+    </div>
+  </div>
+
+
+
+
+
+  <!-- ================= VITALS CHARTS ================= -->
+  <div class="card section-card p-4 mb-4">
+    <h5 class="text-info mb-3">Health Vitals</h5>
+    <div class="chart-navigation">
+      <button class="chart-nav-btn" onclick="previousChart()" aria-label="Previous Chart">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <span id="chartTitle" class="chart-title">Weight History</span>
+      <button class="chart-nav-btn" onclick="nextChart()" aria-label="Next Chart">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+    <div class="chart-container mt-3">
+      <div id="vitalsChartSvg" class="vitals-svg-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ================= RECENT PRESCRIPTIONS ================= -->
+  <div class="card section-card p-4 mb-4">
+    <h5 class="text-info mb-3">Recent Prescriptions</h5>
+    <div id="prescriptionsContainer">
+      <p class="text-secondary">Loading prescriptions...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer class="text-center text-secondary mt-5 mb-3">
+  © 2026 MedStash • Smart Healthcare Record System
+</footer>
+
+<!-- ================= FONT AWESOME ================= -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- ================= STYLES ================= -->
+
+<style>
+body{
+  background:#0b0f1a;
+  color:#ffffff;
+  font-family:'Outfit',sans-serif;
+}
+
+/* ---------------- NAVBAR ---------------- */
+
+.navbar a{
+  color:#dbe7ff;
+  transition:color .2s ease;
+}
+
+.navbar a:hover{
+  color:#4dd0e1;
+}
+
+/* ---------------- CARDS BASE ---------------- */
+
+#greetingCard,
+.section-card,
+.dashboard-card{
+  background:#121b2d;
+  border-radius:14px;
+  border:1px solid #22324a;
+  box-shadow:none;
+}
+
+/* ---------------- GREETING ANIMATION ---------------- */
+
+#greetingCard{
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: slideInGreeting 0.8s ease forwards 0.2s;
+}
+
+#greetingCard.show{
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.greeting-emoji {
+  display: inline-block;
+  animation: waveEmoji 0.6s ease-in-out 0.5s forwards;
+  transform-origin: 70% 70%;
+  opacity: 0;
+}
+
+@keyframes slideInGreeting {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes waveEmoji {
+  0% {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.8);
+  }
+  50% {
+    transform: rotate(25deg) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+#greetingCard h3{
+  letter-spacing:.2px;
+  transition: none;
+  animation: fadeInText 0.8s ease forwards 0.6s;
+  opacity: 0;
+}
+
+#greetingCard p{
+  font-size:14px;
+  transition: none;
+  animation: fadeInText 0.8s ease forwards 0.7s;
+  opacity: 0;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------- SECTION CARD ---------------- */
+
+.section-card h5{
+  font-weight:600;
+  letter-spacing:.3px;
+}
+
+/* ---------------- CHART NAV ---------------- */
+
+.chart-navigation{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:6px 2px 4px;
+}
+
+.chart-title{
+  flex:1;
+  text-align:center;
+  font-weight:700;
+  color:#4dd0e1;
+  letter-spacing:.25px;
+  font-size:15px;
+}
+
+.chart-nav-btn{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:1px solid #243552;
+  background:#0f172a;
+  color:#4dd0e1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+
+.chart-nav-btn:hover{
+  border-color:#4dd0e1;
+  background:#111a30;
+  transform:translateY(-1px);
+}
+
+.chart-container{
+  position:relative;
+  width:100%;
+  height:500px;
+  border-radius:14px;
+  border:1px solid #243552;
+  background:linear-gradient(180deg,#0f172a,#101b2f);
+  padding:10px;
+  box-shadow:inset 0 0 0 1px rgba(77,208,225,0.06);
+}
+
+.vitals-svg-wrap{
+  width:100%;
+  height:100%;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.vitals-svg-wrap svg{
+  width:100% !important;
+  height:100% !important;
+  display:block;
+  border-radius:10px;
+}
+
+@media(max-width:768px){
+  .chart-container{
+    height:360px;
+    padding:8px;
+  }
+}
+
+/* ---------------- SLIDER ---------------- */
+
+.slider-wrapper{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+.slider{
+  display:flex;
+  gap:14px;
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+  padding:6px 2px;
+}
+
+/* ---------------- SERVICE CARD ---------------- */
+
+.service-card{
+  min-width:180px;
+  background:#0f172a;
+  border-radius:14px;
+  padding:14px 12px;
+  text-align:center;
+  flex-shrink:0;
+  border:1px solid #1f2f46;
+  transition:border-color .2s ease, transform .15s ease;
+}
+
+.service-card:hover{
+  border-color:#4dd0e1;
+  transform:translateY(-2px);
+}
+
+.service-card img{
+  width:52px;
+  height:52px;
+  margin-bottom:8px;
+}
+
+.service-card h6{
+  font-size:14px;
+  margin:6px 0 4px;
+  color:#d8f6fb;
+  font-weight:600;
+}
+
+.price{
+  font-size:13px;
+  color:#9fdbe5;
+  margin-bottom:6px;
+  font-weight:500;
+}
+
+.consult-link{
+  font-size:12.5px;
+  font-weight:600;
+  color:#4dd0e1;
+  text-decoration:none;
+}
+
+/* ---------------- SLIDER ARROWS ---------------- */
+
+.slider-arrow{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#0f172a;
+  border:1px solid #243552;
+  color:#4dd0e1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  user-select:none;
+  transition:all .2s ease;
+}
+
+.slider-arrow.left{ left:-18px; }
+.slider-arrow.right{ right:-18px; }
+
+.slider-arrow:hover{
+  border-color:#4dd0e1;
+}
+
+/* ---------------- DASHBOARD CARDS ---------------- */
+
+.dashboard-card h5{
+  font-weight:600;
+  letter-spacing:.3px;
+}
+
+.dashboard-card p{
+  font-size:14px;
+  color:#fff;
+  margin-bottom:0;
+}
+
+.dashboard-card:hover{
+  border-color:#4dd0e1;
+}
+
+/* ---------------- FOOTER ---------------- */
+
+footer{
+  font-size:13px;
+  color:#8fa3bf;
+}
+</style>
+
+
+
+<!-- ================= SCRIPTS ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const slider = document.getElementById("serviceSlider");
+
+  window.slideLeft = function() { slider.scrollLeft -= 220; };
+  window.slideRight = function() { slider.scrollLeft += 220; };
+
+  // Animate greeting card - with reliable timing
+  window.addEventListener('load', function() {
+    const greeting = document.getElementById("greetingCard");
+    if (greeting) {
+      setTimeout(() => {
+        greeting.classList.add("show");
+      }, 100);
+    }
+  });
+
+  // Fallback animation if page already loaded
+  if (document.readyState === 'complete') {
+    const greeting = document.getElementById("greetingCard");
+    if (greeting) {
+      greeting.classList.add("show");
+    }
+  }
+
+
+
+  // Load vitals charts
+  loadVitalsCharts();
+
+  // Load prescriptions
+  loadPrescriptions();
+});
+
+function loadPrescriptions() {
+  fetch('/get_patient_prescriptions')
+  .then(response => response.json())
+  .then(data => {
+    const container = document.getElementById('prescriptionsContainer');
+    if (data.success && data.prescriptions.length > 0) {
+      let html = '<div class="row">';
+      data.prescriptions.forEach(prescription => {
+        html += `
+          <div class="col-md-6 mb-3">
+            <div class="card" style="background:#0f172a; border:1px solid #1f2f46; border-radius:10px; padding:15px;">
+              <h6 class="text-info mb-2">${prescription.medicine_name}</h6>
+              <div class="row">
+                <div class="col-6">
+                  <small class="text-light">Tablets:</small><br>
+                  <strong class="text-light">${prescription.tablets}</strong>
+                </div>
+                <div class="col-6">
+                  <small class="text-light">Timing:</small><br>
+                  <strong class="text-light">${prescription.timing}</strong>
+                </div>
+              </div>
+              <hr style="border-color:#2f3b52;">
+              <div class="row">
+                <div class="col-6">
+                  <small class="text-light">Before/After Eat:</small><br>
+                  <strong class="text-light">${prescription.before_after_eat}</strong>
+                </div>
+                <div class="col-6">
+                  <small class="text-light">Date:</small><br>
+                  <small class="text-light">${prescription.appointment_date}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = '<p class="text-secondary">No prescriptions available.</p>';
+    }
+  })
+  .catch(error => {
+    console.error('Error loading prescriptions:', error);
+    document.getElementById('prescriptionsContainer').innerHTML = '<p class="text-danger">Error loading prescriptions.</p>';
+  });
+}
+
+let currentChartIndex = 0;
+
+const chartTypes = [
+  { title: 'Weight History', url: '/vitals_svg/weight' },
+  { title: 'Height History', url: '/vitals_svg/height' },
+  { title: 'Blood Pressure', url: '/vitals_svg/bp' }
+];
+
+function loadVitalsCharts() {
+  // Initialize with weight chart
+  updateChart(0);
+}
+
+function updateChart(index) {
+  const chartType = chartTypes[index];
+  const chartWrap = document.getElementById('vitalsChartSvg');
+  const chartTitle = document.getElementById('chartTitle');
+
+  // Update title
+  chartTitle.textContent = chartType.title;
+
+  // Load Matplotlib SVG chart (no Chart.js, no img tag)
+  fetch(`${chartType.url}?t=${new Date().getTime()}`)
+    .then(response => response.text())
+    .then(svg => {
+      chartWrap.innerHTML = svg;
+    })
+    .catch(() => {
+      chartWrap.innerHTML = '<p class="text-secondary text-center mt-4">Unable to load chart.</p>';
+    });
+}
+
+function nextChart() {
+  currentChartIndex = (currentChartIndex + 1) % chartTypes.length;
+  updateChart(currentChartIndex);
+}
+
+function previousChart() {
+  currentChartIndex = (currentChartIndex - 1 + chartTypes.length) % chartTypes.length;
+  updateChart(currentChartIndex);
+}
+</script>
+
+{% endblock %}
+

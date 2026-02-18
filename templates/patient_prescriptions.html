@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#121b2d;">
+  <div class="container-fluid">
+
+    <a class="navbar-brand d-flex align-items-center" href="/dashboard">
+      <img src="{{ url_for('static', filename='images/logo.png') }}"
+           width="40" height="40"
+           class="rounded-circle me-2"
+           alt="MedStash Logo">
+      <span class="fw-bold text-info">MedStash</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarIcons">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarIcons">
+      <ul class="navbar-nav text-center">
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/dashboard">
+            <i class="fa-solid fa-house fa-lg"></i><br><small>Home</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/appointments">
+            <i class="fa-solid fa-calendar-check fa-lg"></i><br><small>Appointments</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/history">
+            <i class="fa-solid fa-clock-rotate-left fa-lg"></i><br><small>History</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link active" href="/patient_prescriptions">
+            <i class="fa-solid fa-prescription-bottle-medical fa-lg"></i><br><small>Prescriptions</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/profile">
+            <i class="fa-solid fa-user fa-lg"></i><br><small>Profile</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/notifications">
+            <i class="fa-solid fa-bell fa-lg"></i><br><small>Notifications</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/wallet">
+            <i class="fa-solid fa-wallet fa-lg"></i><br><small>Wallet</small>
+          </a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link" href="/logout">
+            <i class="fa-solid fa-right-from-bracket fa-lg"></i><br><small>Logout</small>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<div class="container-fluid mt-4 px-lg-5 px-3">
+
+  <div class="page-header mb-4">
+    <h4 class="mb-1">
+      <i class="fa-solid fa-prescription-bottle-medical me-2 text-info"></i>
+      My Prescriptions
+    </h4>
+    <p class="page-subtitle">Your medicines prescribed by doctors</p>
+  </div>
+
+  {% if prescriptions_by_date %}
+    {% for date, prescriptions in prescriptions_by_date.items() %}
+
+      <div class="section-card p-4 mb-4">
+
+        <div class="date-title mb-3">
+          <i class="fa-regular fa-calendar me-1"></i>
+          {{ date }}
+        </div>
+
+        <div class="row g-3">
+
+          {% for prescription in prescriptions %}
+
+          <div class="col-12">
+
+            <div class="prescription-card">
+
+              <div class="prescription-top mb-3">
+                <div class="prescription-head">
+                  {{ prescription.medicine_name }}
+                </div>
+              </div>
+
+              <div class="details-grid">
+
+                <div class="detail-box">
+                  <div class="detail-label">Tablets</div>
+                  <div class="detail-value">{{ prescription.tablets }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Timing</div>
+                  <div class="detail-value">{{ prescription.timing.title() }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Before / After Eat</div>
+                  <div class="detail-value">{{ prescription.before_after_eat.title() }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Duration</div>
+                  <div class="detail-value">{{ prescription.duration or 'N/A' }} days</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Total Supplied</div>
+                  <div class="detail-value">{{ prescription.medicine_supplied or (prescription.tablets * prescription.duration) or 0 }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Consumed</div>
+                  <div class="detail-value">{{ prescription.medicine_consumed or 0 }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Remaining</div>
+                  <div class="detail-value">{{ (prescription.medicine_supplied or (prescription.tablets * prescription.duration) or 0) - (prescription.medicine_consumed or 0) }}</div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Doctor</div>
+                  <div class="detail-value">
+                    Dr. {{ prescription.doctor_fname }} {{ prescription.doctor_lname }}
+                  </div>
+                </div>
+
+                <div class="detail-box">
+                  <div class="detail-label">Appointment Date</div>
+                  <div class="detail-value">
+                    {{ prescription.appointment_date }}
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="prescription-footer mt-3">
+                <a href="/prescription_bill/{{ prescription.appointment_id }}"
+                   class="btn btn-outline-info btn-sm view-bill-btn">
+                  <i class="fa-solid fa-file-invoice-dollar me-1"></i>
+                  View Bill
+                </a>
+              </div>
+
+            </div>
+
+          </div>
+
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+    {% endfor %}
+  {% else %}
+
+    <div class="section-card p-4 text-center">
+      <p class="text-secondary mb-0">No prescriptions available.</p>
+    </div>
+
+  {% endif %}
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer class="text-center text-secondary mt-5 mb-3">
+  © 2026 MedStash • Smart Healthcare Record System
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- ================= STYLES ================= -->
+<style>
+
+body{
+  background:#0b0f1a;
+  color:#e6edf6;
+  font-family:'Outfit',sans-serif;
+}
+
+/* header */
+
+.page-header h4{
+  font-weight:600;
+  color:#eaf2ff;
+}
+
+.page-subtitle{
+  font-size:13px;
+  color:#8fa3bf;
+  margin-bottom:0;
+}
+
+/* section */
+
+.section-card{
+  background:linear-gradient(180deg,#121b2d,#0f172a);
+  border:1px solid #22324a;
+  border-radius:14px;
+}
+
+/* date title */
+
+.date-title{
+  font-size:13px;
+  font-weight:600;
+  color:#9fdbea;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* prescription card */
+
+.prescription-card{
+  background:#0b1220;
+  border:1px solid #22324a;
+  border-radius:12px;
+  padding:16px 16px 14px 16px;
+  transition:all .2s ease;
+}
+
+.prescription-card:hover{
+  border-color:#3b82f6;
+  box-shadow:0 8px 22px rgba(0,0,0,.35);
+}
+
+/* top */
+
+.prescription-head{
+  font-size:15px;
+  font-weight:600;
+  color:#eaf2ff;
+}
+
+/* grid */
+
+.details-grid{
+  margin-top:8px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+@media(max-width:992px){
+  .details-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:576px){
+  .details-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* detail box */
+
+.detail-box{
+  background:linear-gradient(180deg,#0f172a,#0b1220);
+  border:1px solid #1f2f46;
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.detail-label{
+  font-size:11px;
+  color:#8fa3bf;
+  margin-bottom:2px;
+  font-weight:500;
+}
+
+.detail-value{
+  font-size:13px;
+  color:#e6edf6;
+  font-weight:600;
+}
+
+/* footer area */
+
+.prescription-footer{
+  display:flex;
+  justify-content:flex-end;
+}
+
+/* view bill button */
+
+.view-bill-btn{
+  border-radius:8px;
+  padding:4px 12px;
+}
+
+/* footer */
+
+footer{
+  font-size:13px;
+  color:#8fa3bf;
+}
+
+</style>
+
+{% endblock %}

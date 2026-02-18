@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid pt-2 pb-5 page-wrap">
+  <div class="container">
+
+    <!-- ================= BACK BUTTON ================= -->
+    <div class="d-flex justify-content-start mb-3">
+      <button class="prev-btn" onclick="goToDashboard()" aria-label="Go Back">
+        <i class="fas fa-angle-left"></i>
+      </button>
+    </div>
+
+    <!-- ================= HEADER ================= -->
+    <div class="text-center mb-4">
+
+      <h1 class="page-title">
+        <i class="fas fa-user-md text-info me-3"></i>{{ specialty }} Specialists
+      </h1>
+
+      <p class="page-subtitle">
+        <i class="fas fa-map-marker-alt text-info me-2"></i>
+        Find verified doctors near your location
+      </p>
+
+      <span class="badge sort-badge">
+        <i class="fas fa-sort-amount-up me-2"></i>
+        Sorted by distance (closest first)
+      </span>
+
+    </div>
+
+    {% if doctors %}
+    <div class="row g-4 justify-content-center">
+
+      {% for d in doctors %}
+      <div class="col-lg-4 col-md-6 col-sm-12">
+
+        <div class="doctor-card h-100">
+
+          <!-- ========= Header / Photo ========= -->
+          <div class="card-header text-center bg-transparent border-0 pt-4">
+
+            <div class="profile-container">
+              <img
+                src="{{ d.get('profile_photo', 'https://img.icons8.com/material-outlined/120/4dd0e1/user.png') }}"
+                class="profile-pic"
+                alt="Doctor">
+            </div>
+
+          </div>
+
+          <!-- ========= Body ========= -->
+          <div class="card-body text-center px-4">
+
+            <h4 class="doctor-name">
+              <br>
+              Dr. {{ d["fname"] }} {{ d["lname"] }}
+            </h4>
+
+            <!-- Distance -->
+            <div class="distance-info mb-2">
+              <i class="fas fa-location-dot text-info me-1"></i>
+              <span class="text-info fw-semibold">{{ d["distance_display"] }}</span>
+            </div>
+
+            <!-- Rating -->
+            <div class="rating mb-3">
+              {% for i in range(5) %}
+                {% if i < d["rating"]|int %}
+                  <span class="star filled">★</span>
+                {% else %}
+                  <span class="star">☆</span>
+                {% endif %}
+              {% endfor %}
+              <span class="rating-text">
+                {{ d["rating"]|float|round(1) }}
+              </span>
+            </div>
+
+            <!-- Details -->
+            <div class="doctor-details">
+
+              <div class="detail-row">
+                <i class="fas fa-graduation-cap detail-icon"></i>
+                <span class="detail-text">
+                  {{ d["qualification"] or "MBBS" }}
+                </span>
+              </div>
+
+              <div class="detail-row">
+                <i class="fas fa-briefcase detail-icon"></i>
+                <span class="detail-text">
+                  {{ d["experience_years"] or 0 }} years experience
+                </span>
+              </div>
+
+              <div class="detail-row">
+                <i class="fas fa-stethoscope detail-icon"></i>
+                <span class="detail-text">
+                  {{ d["specialty"] }}
+                </span>
+              </div>
+
+
+
+            </div>
+
+          </div>
+
+          <!-- ========= Footer ========= -->
+          <div class="card-footer bg-transparent border-0 px-4 pb-4">
+
+            <a href="/doctor/{{ d['id'] }}" class="btn btn-book">
+              <i class="fas fa-calendar-check me-2"></i>
+              Book appointment
+            </a>
+
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <!-- ================= EMPTY ================= -->
+    <div class="text-center py-5">
+
+      <div class="empty-state">
+
+        <i class="fas fa-search fa-3x text-secondary mb-4"></i>
+
+        <h4 class="text-white mb-2">
+          No doctors available
+        </h4>
+
+        <p class="text-secondary mb-3">
+          Currently there are no doctors listed for this specialty.
+        </p>
+
+        <a href="/dashboard" class="btn btn-info">
+          Back to Dashboard
+        </a>
+
+      </div>
+
+    </div>
+
+    {% endif %}
+
+  </div>
+</div>
+
+
+<style>
+/* ================= PAGE ================= */
+
+.page-wrap{
+  min-height:100vh;
+  background:#1a2332;
+}
+.prev-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#121b2d;
+  border:1px solid #22324a;
+  color:#cfefff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .25s ease;
+}
+
+.prev-btn:hover{
+  transform:translateX(-6px);
+  border-color:#4dd0e1;
+  color:#4dd0e1;
+  background:#121b2d;
+}
+
+.prev-btn:active{
+  transform:translateX(-10px) scale(.95);
+}
+
+.prev-btn:focus{
+  box-shadow:none;
+  outline:none;
+}
+.page-title{
+  color:#f8fafc;
+  font-weight:700;
+  text-shadow:0 2px 4px rgba(0,0,0,.3);
+  margin-top:0;   /* FIX extra top gap */
+}
+
+.page-subtitle{
+  color:#cbd5e1;
+  opacity:.9;
+}
+
+.sort-badge{
+  background:#e0f7fa;
+  color:#083344;
+  border-radius:8px;
+  padding:8px 16px;
+  font-weight:600;
+}
+
+
+/* ================= CARD ================= */
+
+.doctor-card{
+  background:#111827;
+  border:1px solid rgba(148,163,184,.15);
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  transition:box-shadow .2s ease, border-color .2s ease;
+}
+
+.doctor-card:hover{
+  border-color:rgba(77,208,225,.4);
+  box-shadow:0 12px 30px rgba(0,0,0,.45), 0 0 15px rgba(77, 208, 225, 0.3);
+}
+
+
+/* ================= PHOTO ================= */
+
+.profile-container{
+  display:inline-block;
+}
+
+.profile-pic{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #4dd0e1;
+  background:#0f172a;
+}
+
+
+/* ================= NAME ================= */
+
+.doctor-name{
+  color:#f1f5f9;
+  font-weight:600;
+  font-size:1.25rem;
+  margin-bottom:4px;
+}
+
+
+/* ================= RATING ================= */
+
+.rating{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:2px;
+}
+
+.star{
+  font-size:1.05rem;
+  color:#64748b;
+}
+
+.star.filled{
+  color:#facc15;
+}
+
+.rating-text{
+  margin-left:6px;
+  color:#cbd5e1;
+  font-size:.9rem;
+  font-weight:600;
+}
+
+
+/* ================= DETAILS ================= */
+
+.doctor-details{
+  margin-top:14px;
+  margin-bottom:18px;
+}
+
+.detail-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.detail-icon{
+  color:#94a3b8;
+  width:18px;
+  text-align:center;
+}
+
+.detail-text{
+  color:#cbd5e1;
+  font-size:.9rem;
+}
+
+
+/* ================= FEE ================= */
+
+.fee-box{
+  background:rgba(77,208,225,.08);
+  border:1px solid rgba(77,208,225,.18);
+  border-radius:12px;
+  padding:10px;
+}
+
+.fee-amount{
+  color:#4dd0e1;
+  font-weight:700;
+  font-size:1.3rem;
+}
+
+.fee-label{
+  color:#94a3b8;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+
+/* ================= BUTTON ================= */
+
+.btn-book{
+  width:100%;
+  background:#4dd0e1;
+  color:#083344;
+  border-radius:10px;
+  font-weight:600;
+  padding:10px;
+  transition:background .2s ease;
+}
+
+.btn-book:hover{
+  background:#26c6da;
+  color:#083344;
+}
+
+
+/* ================= EMPTY ================= */
+
+.empty-state{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+  padding:40px 24px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+/* Extra small devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .sort-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .profile-pic {
+    width: 70px;
+    height: 70px;
+  }
+
+  .doctor-name {
+    font-size: 1rem;
+  }
+
+  .distance-info {
+    font-size: 0.85rem;
+  }
+
+  .rating {
+    font-size: 0.9rem;
+  }
+
+  .detail-text {
+    font-size: 0.8rem;
+  }
+
+  .btn-book {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .empty-state {
+    padding: 30px 15px;
+  }
+
+  .empty-state .fa-3x {
+    font-size: 2.5rem;
+  }
+}
+
+/* Small devices (tablets, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .page-title {
+    font-size: 1.6rem;
+  }
+
+  .profile-pic {
+    width: 90px;
+    height: 90px;
+  }
+
+  .doctor-name {
+    font-size: 1.15rem;
+  }
+
+  .btn-book {
+    font-size: 0.95rem;
+    padding: 9px;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+
+  .profile-pic {
+    width: 110px;
+    height: 110px;
+  }
+
+  .doctor-name {
+    font-size: 1.3rem;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 767.98px) {
+  .doctor-card {
+    margin-bottom: 10px;
+  }
+
+  .card-body {
+    padding: 15px 10px;
+  }
+
+  .card-footer {
+    padding: 10px;
+  }
+
+  .profile-pic {
+    width: 60px;
+    height: 60px;
+  }
+
+  .doctor-name {
+    font-size: 0.95rem;
+  }
+
+  .btn-book {
+    padding: 6px;
+    font-size: 0.85rem;
+  }
+}
+</style>
+
+{% endblock %}

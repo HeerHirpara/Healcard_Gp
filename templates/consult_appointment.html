@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#0e111a;">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center fw-bold text-info" href="/doctor/dashboard">
+      <i class="fa-solid fa-user-doctor me-2"></i> MedStash Doctor
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#doctorNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="doctorNav">
+      <ul class="navbar-nav text-center">
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/dashboard"><i class="fa-solid fa-gauge fa-lg"></i><br><small>Dashboard</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/appointments"><i class="fa-solid fa-calendar-check fa-lg"></i><br><small>Appointments</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/notifications"><i class="fa-solid fa-bell fa-lg"></i><br><small>Notifications</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/wallet"><i class="fa-solid fa-wallet fa-lg"></i><br><small>Wallet</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/doctor/profile"><i class="fa-solid fa-user fa-lg"></i><br><small>Profile</small></a></li>
+        <li class="nav-item mx-2"><a class="nav-link text-muted" href="/logout"><i class="fa-solid fa-right-from-bracket fa-lg"></i><br><small>Logout</small></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4 px-4">
+
+  <!-- Appointment Details Card -->
+  <div class="card mb-4 p-4 flat-card">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h3 class="fw-bold mb-1">Consultation Session</h3>
+        <p class="text-secondary mb-0">Patient: {{ appointment.patient_fname }} {{ appointment.patient_lname }}</p>
+        <p class="text-secondary mb-0">Date: {{ appointment.date }} | Time: {{ appointment.time }}</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <i class="fa-solid fa-user-md text-info" style="font-size:3rem;"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consultation Interface -->
+  <div class="row">
+    <!-- Patient Information -->
+    <div class="col-md-4">
+      <div class="card mb-4 p-4 flat-card">
+        <h5 class="text-info mb-3">
+          <i class="fa-solid fa-user me-2"></i>Patient Information
+        </h5>
+        <div class="mb-3">
+          <strong>Name:</strong> {{ appointment.patient_fname }} {{ appointment.patient_lname }}
+        </div>
+        <div class="mb-3">
+          <strong>Email:</strong> {{ appointment.patient_email }}
+        </div>
+        <div class="mb-3">
+          <strong>Address:</strong> {{ appointment.patient_address or 'Not provided' }}
+        </div>
+        <div class="mb-3">
+          <strong>City:</strong> {{ appointment.patient_city or 'Not provided' }}
+        </div>
+        <div class="mb-3">
+          <strong>State:</strong> {{ appointment.patient_state or 'Not provided' }}
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card mb-4 p-4 flat-card">
+        <h5 class="text-info mb-3">
+          <i class="fa-solid fa-bolt me-2"></i>Quick Actions
+        </h5>
+        <a href="/prescription/{{ appointment.id }}" class="btn btn-info btn-sm w-100 mb-2">
+          <i class="fa-solid fa-prescription me-2"></i>Add Prescription
+        </a>
+        <button class="btn btn-danger btn-sm w-100" onclick="endConsultation()">
+          <i class="fa-solid fa-times me-2"></i>End Consultation
+        </button>
+      </div>
+    </div>
+
+    <!-- Vitals and Notes Section -->
+    <div class="col-md-8">
+      <!-- Record Vitals -->
+      <div class="card mb-4 flat-card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-heartbeat me-2"></i>Record Vitals
+          </h5>
+        </div>
+        <div class="card-body">
+          <form id="vitalsForm">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">Weight (kg)</label>
+                <input type="number" class="form-control" id="weight" step="0.1" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Height (cm)</label>
+                <input type="number" class="form-control" id="height" step="0.1" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">BP Systolic</label>
+                <input type="number" class="form-control" id="bpSystolic" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">BP Diastolic</label>
+                <input type="number" class="form-control" id="bpDiastolic" required>
+              </div>
+            </div>
+            <button type="button" class="btn btn-success btn-sm mt-3" onclick="saveVitals()">
+              <i class="fa-solid fa-save me-2"></i>Save Vitals
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="card flat-card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-sticky-note me-2"></i>Consultation Notes
+          </h5>
+        </div>
+        <div class="card-body">
+          <textarea class="form-control" rows="4" placeholder="Add consultation notes here..." id="notesArea"></textarea>
+          <button class="btn btn-info btn-sm mt-2" onclick="saveNotes()">
+            <i class="fa-solid fa-save me-2"></i>Save Notes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Styles -->
+<style>
+body {
+    background:#0f121d;
+    color:#ECEFF1;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Cards */
+.card {
+    background:#121b2d;
+    border-radius:12px;
+    border:1px solid #2f3b52;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.flat-card:hover {
+    border-color:#4DD0E1;
+    box-shadow: 0 6px 16px rgba(77,208,225,0.35);
+}
+
+
+
+/* Buttons */
+.btn-success {
+    background:#16a34a;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    font-weight:600;
+    border-radius:6px;
+    transition:all 0.2s ease;
+}
+
+.btn-success:hover {
+    background:#22c55e;
+}
+
+.btn-info {
+    background:#0dcaf0;
+    color:#000;
+    border:none;
+    padding:8px 16px;
+    font-weight:600;
+    border-radius:6px;
+    transition:all 0.2s ease;
+}
+
+.btn-info:hover {
+    background:#31d2f2;
+}
+
+.btn-warning {
+    background:#ffc107;
+    color:#000;
+    border:none;
+    padding:8px 16px;
+    font-weight:600;
+    border-radius:6px;
+    transition:all 0.2s ease;
+}
+
+.btn-warning:hover {
+    background:#ffca2c;
+}
+
+.btn-secondary {
+    background:#6c757d;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    font-weight:600;
+    border-radius:6px;
+    transition:all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background:#5c636a;
+}
+
+/* Card headings */
+.card h3, .card h4, .card h5, .card h6 {
+    color:#E0F7FA;
+}
+
+/* Muted text */
+.text-secondary {
+    color:#90A4AE !important;
+}
+
+/* Form controls */
+.form-control {
+    background:#1a1f2c;
+    border:1px solid #2f3b52;
+    color:#ECEFF1;
+}
+
+.form-control:focus {
+    background:#1a1f2c;
+    border-color:#4DD0E1;
+    color:#ECEFF1;
+    box-shadow: 0 0 0 0.2rem rgba(77, 208, 225, 0.25);
+}
+</style>
+
+<script>
+
+
+function addMedicineRow() {
+    const container = document.getElementById('medicinesContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'medicine-row mb-3 p-3 border rounded';
+    newRow.style.background = '#0f172a';
+    newRow.innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Medicine Name</label>
+                <input type="text" class="form-control medicine-name" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tablets/Day</label>
+                <input type="number" class="form-control tablets" min="1" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Timing</label>
+                <select class="form-control timing" required>
+                    <option value="">Select</option>
+                    <option value="morning">Morning</option>
+                    <option value="night">Night</option>
+                    <option value="both">Both</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Before/After</label>
+                <select class="form-control before-after" required>
+                    <option value="">Select</option>
+                    <option value="before">Before</option>
+                    <option value="after">After</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Duration (days)</label>
+                <input type="number" class="form-control duration" min="1" placeholder="Optional">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-sm remove-medicine">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+    updateRemoveButtons();
+}
+
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.medicine-row');
+    rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.remove-medicine');
+        if (rows.length > 1) {
+            removeBtn.style.display = 'block';
+            removeBtn.onclick = () => {
+                row.remove();
+                updateRemoveButtons();
+            };
+        } else {
+            removeBtn.style.display = 'none';
+        }
+    });
+}
+
+function savePrescription() {
+    const medicines = [];
+    const rows = document.querySelectorAll('.medicine-row');
+
+    for (let row of rows) {
+        const medicineName = row.querySelector('.medicine-name').value.trim();
+        const tablets = row.querySelector('.tablets').value;
+        const timing = row.querySelector('.timing').value;
+        const beforeAfter = row.querySelector('.before-after').value;
+        const duration = row.querySelector('.duration').value;
+
+        if (!medicineName || !tablets || !timing || !beforeAfter) {
+            alert('Please fill all required fields for each medicine');
+            return;
+        }
+
+        medicines.push({
+            medicine_name: medicineName,
+            tablets: parseInt(tablets),
+            timing: timing,
+            before_after_eat: beforeAfter,
+            duration: duration ? parseInt(duration) : null
+        });
+    }
+
+    if (medicines.length === 0) {
+        alert('Please add at least one medicine');
+        return;
+    }
+
+    fetch('/save_prescription/{{ appointment.id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            medicines: medicines
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Prescription saved successfully!');
+            // Reload page to show updated prescriptions
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            alert('Error saving prescription: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving prescription');
+    });
+}
+
+// Initialize remove buttons on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateRemoveButtons();
+});
+
+function saveVitals() {
+    const weight = document.getElementById('weight').value;
+    const height = document.getElementById('height').value;
+    const bpSystolic = document.getElementById('bpSystolic').value;
+    const bpDiastolic = document.getElementById('bpDiastolic').value;
+
+    if (!weight || !height || !bpSystolic || !bpDiastolic) {
+        alert('Please fill all fields');
+        return;
+    }
+
+    fetch('/save_vitals/{{ appointment.patient_id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            weight: parseFloat(weight),
+            height: parseFloat(height),
+            bp_systolic: parseInt(bpSystolic),
+            bp_diastolic: parseInt(bpDiastolic)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Vitals saved successfully!');
+            document.getElementById('vitalsForm').reset();
+        } else {
+            alert('Error saving vitals: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving vitals');
+    });
+}
+
+function saveNotes() {
+    const notes = document.getElementById('notesArea').value.trim();
+    if (!notes) {
+        alert('Please enter some notes before saving.');
+        return;
+    }
+
+    fetch('/save_notes/{{ appointment.id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Notes saved successfully!');
+        } else {
+            alert('Error saving notes: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving notes');
+    });
+}
+
+function endConsultation() {
+    if (confirm('Are you sure you want to end this consultation?')) {
+        window.location.href = '/doctor/appointments';
+    }
+}
+
+
+</script>
+
+
+
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="sp-hero card p-4 p-md-5 mb-4">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <p class="sp-kicker mb-2">Responsive Static Page</p>
+      <h1 class="sp-title mb-3">MedStash Overview</h1>
+      <p class="sp-copy mb-4">
+        This page is fully static, mobile friendly, and runs without login flow dependencies.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="/" class="btn btn-info btn-sm px-3">Home</a>
+        <a href="/dashboard" class="btn btn-outline-info btn-sm px-3">Dashboard</a>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="sp-badge-wrap">
+        <div class="sp-badge">Fast</div>
+        <div class="sp-badge">Clean</div>
+        <div class="sp-badge">Responsive</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 g-md-4">
+  <div class="col-md-6 col-lg-4">
+    <div class="sp-card h-100">
+      <h6>Consultations</h6>
+      <p>Easy discovery, booking, and consultation tracking for patients.</p>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="sp-card h-100">
+      <h6>Vitals</h6>
+      <p>Dark-themed chart rendering for weight, height, and blood pressure.</p>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="sp-card h-100">
+      <h6>Payments</h6>
+      <p>Category-based fees and stable payment flow with no form resubmit loop.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+.sp-hero {
+  background: linear-gradient(135deg, #121b2d 0%, #18243c 100%);
+  border: 1px solid #243552;
+}
+
+.sp-kicker {
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.sp-title {
+  color: #ecfeff;
+  font-weight: 700;
+}
+
+.sp-copy {
+  color: #b6c6da;
+  max-width: 560px;
+}
+
+.sp-badge-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.sp-badge {
+  background: #0f172a;
+  border: 1px solid #24415c;
+  color: #9de7f1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.sp-card {
+  background: #121b2d;
+  border: 1px solid #22324a;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.sp-card h6 {
+  color: #8de8f5;
+  margin-bottom: 8px;
+}
+
+.sp-card p {
+  color: #9fb3cc;
+  margin-bottom: 0;
+  font-size: 0.92rem;
+}
+</style>
+
+{% endblock %}

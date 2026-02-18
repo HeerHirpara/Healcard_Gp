@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Back to Dashboard Button -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+  <a href="/doctor/dashboard" class="btn btn-light fw-bold">
+    <i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+  </a>
+</div>
+
+<div class="container mt-5">
+  <div class="card p-4 mx-auto" style="max-width:800px; background:#121b2d; color:#fff;">
+
+    <h4 class="text-info mb-3">Complete Your Profile</h4>
+
+    <div class="circular-progress mb-3">
+      <svg class="progress-circle" width="120" height="120" viewBox="0 0 120 120">
+        <circle class="progress-circle-bg" cx="60" cy="60" r="50" stroke="#e9ecef" stroke-width="10" fill="none"></circle>
+        <circle class="progress-circle-fill" cx="60" cy="60" r="50" stroke="#17a2b8" stroke-width="10" fill="none" stroke-linecap="round" transform="rotate(-90 60 60)"></circle>
+      </svg>
+      <div class="progress-text" id="progressText">{{ profile_percent }}%</div>
+    </div>
+
+    <form method="POST" id="profileForm">
+
+      <!-- Specialty Selection -->
+      <div class="mb-3">
+        <label class="form-label text-info fw-bold">👨‍⚕️ Specialty</label>
+        <select name="specialty" id="specialty" class="form-select" required>
+          <option value="">Select Your Specialty</option>
+          <option value="Gynaecology" {% if doctor.specialty == 'Gynaecology' %}selected{% endif %}>Gynaecology</option>
+          <option value="Dermatology" {% if doctor.specialty == 'Dermatology' %}selected{% endif %}>Dermatology</option>
+          <option value="Gastrology" {% if doctor.specialty == 'Gastrology' %}selected{% endif %}>Gastrology</option>
+          <option value="General Physician" {% if doctor.specialty == 'General Physician' %}selected{% endif %}>General Physician</option>
+          <option value="Psychiatry" {% if doctor.specialty == 'Psychiatry' %}selected{% endif %}>Psychiatry</option>
+          <option value="Child Care" {% if doctor.specialty == 'Child Care' %}selected{% endif %}>Child Care</option>
+          <option value="Urology" {% if doctor.specialty == 'Urology' %}selected{% endif %}>Urology</option>
+        </select>
+      </div>
+
+      <!-- Consultation Fees (Auto-calculated based on specialty) -->
+      <div class="mb-3">
+        <label class="form-label text-info fw-bold">💰 Consultation Fees (₹)</label>
+        <input type="text" id="fees_display"
+               class="form-control"
+               placeholder="Select specialty to see fees"
+               readonly>
+        <small class="text-white">Fees are automatically set based on your specialty</small>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <input type="number" name="age" id="age"
+                 class="form-control mb-3"
+                 placeholder="Age"
+                 value="{{ doctor.age or '' }}">
+        </div>
+        <div class="col-md-6">
+          <input type="number" name="experience_years" id="experience_years"
+                 class="form-control mb-3"
+                 placeholder="Years of Experience"
+                 value="{{ doctor.experience_years or '' }}">
+        </div>
+      </div>
+
+      <input type="text" name="qualification" id="qualification"
+             class="form-control mb-3"
+             placeholder="Qualification"
+             value="{{ doctor.qualification or '' }}">
+
+      <input type="text" name="license" id="license"
+             class="form-control mb-3"
+             placeholder="Medical License Number"
+             value="{{ doctor.license or '' }}">
+
+      <!-- Detailed Address Section -->
+      <h6 class="text-info mb-2">🏥 Hospital/Clinic Details</h6>
+
+      <input type="text" name="hospital_name" id="hospital_name"
+             class="form-control mb-3"
+             placeholder="Hospital/Clinic Name"
+             value="{{ doctor.hospital_name or '' }}">
+
+      <div class="row">
+        <div class="col-md-6">
+          <input type="text" name="city" id="city"
+                 class="form-control mb-3"
+                 placeholder="City"
+                 value="{{ doctor.city or '' }}">
+        </div>
+        <div class="col-md-6">
+          <input type="text" name="state" id="state"
+                 class="form-control mb-3"
+                 placeholder="State"
+                 value="{{ doctor.state or '' }}">
+        </div>
+      </div>
+
+      <input type="text" name="landmark" id="landmark"
+             class="form-control mb-3"
+             placeholder="Nearby Landmark"
+             value="{{ doctor.landmark or '' }}">
+
+      <input type="text" name="full_address" id="full_address"
+             class="form-control mb-3"
+             placeholder="Full Address"
+             value="{{ doctor.full_address or '' }}">
+
+      <input type="text" name="pincode" id="pincode"
+             class="form-control mb-3"
+             placeholder="Pincode"
+             value="{{ doctor.pincode or '' }}">
+
+      <div class="row">
+        <div class="col-md-6">
+          <input type="text" name="latitude" id="latitude"
+                 class="form-control mb-3"
+                 placeholder="Latitude"
+                 value="{{ doctor.latitude or '' }}">
+        </div>
+        <div class="col-md-6">
+          <input type="text" name="longitude" id="longitude"
+                 class="form-control mb-3"
+                 placeholder="Longitude"
+                 value="{{ doctor.longitude or '' }}">
+        </div>
+      </div>
+
+      <input type="number" name="staff_count" id="staff_count"
+             class="form-control mb-3"
+             placeholder="Staff Count"
+             value="{{ doctor.staff_count or '' }}">
+
+      <input type="text" name="languages" id="languages"
+             class="form-control mb-3"
+             placeholder="Languages Spoken"
+             value="{{ doctor.languages or '' }}">
+
+      <textarea name="reviews" id="reviews"
+                class="form-control mb-3"
+                placeholder="Reviews/Testimonials"
+                rows="3">{{ doctor.reviews or '' }}</textarea>
+
+      <textarea name="awards" id="awards"
+                class="form-control mb-3"
+                placeholder="Awards & Certifications"
+                rows="3">{{ doctor.awards or '' }}</textarea>
+
+      <input type="text" name="emergency_contact" id="emergency_contact"
+             class="form-control mb-3"
+             placeholder="Emergency Contact Number"
+             value="{{ doctor.emergency_contact or '' }}">
+
+      <button class="btn btn-info fw-bold w-100">
+        Save & Update Profile
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+<style>
+
+
+/* ---------------- Card shell ---------------- */
+
+.container .card{
+  background:#121b2d !important;
+  color:#ffffff;
+  border-radius:14px;
+  border:1px solid #22324a;
+  box-shadow:0 6px 14px rgba(0,0,0,0.18);
+}
+
+/* ---------------- Back button ---------------- */
+
+.position-fixed a.btn{
+  background:#121b2d;
+  color:#dbefff;
+  border:1px solid #22324a;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+}
+
+.position-fixed a.btn:hover{
+  border-color:#17a2b8;
+  color:#17a2b8;
+  background:#121b2d;
+}
+
+/* ---------------- Headings ---------------- */
+
+h4, h6{
+  font-weight:600;
+  letter-spacing:.3px;
+}
+
+/* ---------------- Labels ---------------- */
+
+.form-label{
+  font-size:13px;
+  letter-spacing:.2px;
+}
+
+/* ---------------- Inputs ---------------- */
+
+.form-control,
+.form-select,
+textarea{
+  background:#0f172a;
+  border:1px solid #243652;
+  color:#ffffff;
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.form-select {
+  padding-right: 12px;
+}
+
+.form-control::placeholder,
+textarea::placeholder{
+  color:#8ea3c0;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus{
+  background:#0f172a;
+  color:#ffffff;
+  border-color:#17a2b8;
+  box-shadow:none;
+}
+
+/* remove number input arrows look heavy in dark UI */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{
+  opacity:.4;
+}
+
+/* ---------------- Section title ---------------- */
+
+h6.text-info{
+  margin-top:12px;
+}
+
+/* ---------------- Save button ---------------- */
+
+button.btn-info{
+  border-radius:12px;
+  font-weight:600;
+  letter-spacing:.3px;
+}
+
+/* ---------------- Progress ring ---------------- */
+
+.circular-progress{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:auto;
+}
+
+.progress-circle-bg{
+  stroke:#22324a;
+}
+
+.progress-circle-fill{
+  stroke:#17a2b8;
+}
+
+/* ---------------- Progress text ---------------- */
+
+.progress-text{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  font-size:18px;
+  font-weight:600;
+  color:#17a2b8;
+  letter-spacing:.3px;
+  z-index:10;
+}
+
+/* ---------------- Spacing cleanup ---------------- */
+
+.mb-3{
+  margin-bottom:14px !important;
+}
+
+
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('profileForm');
+  const progressCircle = document.querySelector('.progress-circle-fill');
+  const progressText = document.getElementById('progressText');
+  const circumference = 2 * Math.PI * 50; // radius is 50
+  const specialtySelect = document.getElementById('specialty');
+  const feesDisplay = document.getElementById('fees_display');
+
+  // Specialty to fees mapping
+  const specialtyFees = {
+    'General Physician': 200,
+    'Gynaecology': 500,
+    'Dermatology': 500,
+    'Gastrology': 200,
+    'Psychiatry': 200,
+    'Child Care': 500,
+    'Urology': 500
+  };
+
+  function updateFeesDisplay() {
+    const selectedSpecialty = specialtySelect.value;
+    if (selectedSpecialty && specialtyFees[selectedSpecialty]) {
+      feesDisplay.value = '₹' + specialtyFees[selectedSpecialty];
+    } else {
+      feesDisplay.value = '';
+    }
+  }
+
+  function updateProgress(percent) {
+    const dashArray = (percent / 100) * circumference;
+    progressCircle.style.strokeDasharray = `${dashArray} ${circumference - dashArray}`;
+    progressText.textContent = percent + '%';
+  }
+
+  function calculateProgressFromServer() {
+    const formData = new FormData(form);
+
+    fetch('/calculate_profile_progress', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateProgress(data.progress);
+      }
+    })
+    .catch(error => {
+      console.error('Error calculating progress:', error);
+    });
+  }
+
+  // Initial calculation and fees display
+  calculateProgressFromServer();
+  updateFeesDisplay();
+
+  // Update fees when specialty changes
+  specialtySelect.addEventListener('change', updateFeesDisplay);
+
+  // Update on input/change for all form fields
+  form.querySelectorAll('input, textarea, select').forEach(field => {
+    field.addEventListener('input', calculateProgressFromServer);
+    field.addEventListener('change', calculateProgressFromServer);
+  });
+});
+</script>
+
+{% endblock %}

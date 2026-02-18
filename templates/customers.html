@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+  <h3 class="text-info mb-4">Customers List</h3>
+
+  <!-- Add Customer Form -->
+  <div class="card p-4 mb-4" style="background: linear-gradient(135deg, #121b2d 0%, #1a2332 100%); border: 1px solid rgba(77, 208, 225, 0.1); border-radius: 20px; color: #ECEFF1;">
+    <h5 class="text-info mb-3">Add New Customer</h5>
+    <form id="addCustomerForm">
+      <div class="row">
+        <div class="col-md-3">
+          <input type="text" class="form-control" id="fname" placeholder="First Name" required>
+        </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control" id="lname" placeholder="Last Name" required>
+        </div>
+        <div class="col-md-3">
+          <input type="email" class="form-control" id="email" placeholder="Email" required>
+        </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control" id="mobile" placeholder="Mobile" required>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-md-3">
+          <input type="text" class="form-control" id="city" placeholder="City" required>
+        </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control" id="state" placeholder="State" required>
+        </div>
+        <div class="col-md-6">
+          <button type="submit" class="btn btn-info btn-block">Add Customer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Customers List -->
+  <div id="customerList" class="row g-4">
+    <!-- Customers will be loaded here -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  loadCustomers();
+
+  document.getElementById('addCustomerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = {
+      fname: document.getElementById('fname').value,
+      lname: document.getElementById('lname').value,
+      email: document.getElementById('email').value,
+      mobile: document.getElementById('mobile').value,
+      city: document.getElementById('city').value,
+      state: document.getElementById('state').value
+    };
+
+    fetch('/api/customers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        alert('Customer added successfully!');
+        document.getElementById('addCustomerForm').reset();
+        loadCustomers();
+      } else {
+        alert('Error adding customer: ' + result.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error adding customer');
+    });
+  });
+});
+
+function loadCustomers() {
+  fetch('/api/customers')
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      const customerList = document.getElementById('customerList');
+      customerList.innerHTML = '';
+
+      result.customers.forEach(customer => {
+        const customerCard = `
+          <div class="col-md-6 col-lg-4">
+            <div class="card p-4" style="background: linear-gradient(135deg, #121b2d 0%, #1a2332 100%); border: 1px solid rgba(77, 208, 225, 0.1); border-radius: 20px; color: #ECEFF1;">
+              <h5 class="text-info">${customer.fname} ${customer.lname}</h5>
+              <p class="text-light"><strong>Email:</strong> ${customer.email}</p>
+              <p class="text-light"><strong>City:</strong> ${customer.patient_city || 'N/A'}</p>
+              <p class="text-light"><strong>State:</strong> ${customer.patient_state || 'N/A'}</p>
+              <p class="text-light"><strong>Mobile:</strong> ${customer.mobile || 'N/A'}</p>
+            </div>
+          </div>
+        `;
+        customerList.innerHTML += customerCard;
+      });
+    } else {
+      alert('Error loading customers: ' + result.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error loading customers');
+  });
+}
+</script>
+
+{% endblock %}

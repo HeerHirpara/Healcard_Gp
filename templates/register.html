@@ -1,0 +1,216 @@
+ {% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-5 mx-auto mt-5"
+     style="max-width:500px; background:#121b2d; color:#fff;
+            border-radius:20px; box-shadow:0 15px 30px rgba(0,0,0,0.5);">
+
+  <h3 class="text-center text-info mb-4">Create Account</h3>
+
+  <form id="registerForm" method="POST" novalidate>
+
+    <input type="text" name="fname" class="form-control mb-1" placeholder="First Name" required>
+    <div class="invalid-feedback">First name is required.</div>
+
+    <input type="text" name="mname" class="form-control mb-1" placeholder="Middle Name">
+    <div class="invalid-feedback">Middle name cannot have numbers.</div>
+
+    <input type="text" name="lname" class="form-control mb-1" placeholder="Last Name" required>
+    <div class="invalid-feedback">Last name is required.</div>
+
+    <div class="gender-select-wrap mb-1">
+      <select name="gender" class="form-select gender-select" required>
+        <option value="" disabled selected>Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+      <div class="invalid-feedback">Please select your gender.</div>
+    </div>
+
+    <input type="date" name="dob" id="dob" class="form-control mb-1" required>
+    <div class="invalid-feedback">Please select your date of birth.</div>
+
+    <input type="number" name="age" id="age" class="form-control mb-1" placeholder="Age" readonly>
+    <div class="invalid-feedback">Invalid age.</div>
+
+    <input type="email" name="email" class="form-control mb-1" placeholder="Email" required>
+    <div class="invalid-feedback">Please enter a valid email address.</div>
+
+    <input type="text" name="mobile" class="form-control mb-1" placeholder="Mobile Number" required pattern="[6-9][0-9]{9}" maxlength="10">
+    <div class="invalid-feedback">Please enter a valid 10-digit mobile number starting with 6-9.</div>
+
+    <input type="password" name="password" class="form-control mb-1" placeholder="Password" required minlength="6">
+    <div class="invalid-feedback">Password must be at least 6 characters.</div>
+
+    <!-- ROLE -->
+    <select name="role" class="form-select mb-3" required>
+      <option value="" disabled selected>Select Role</option>
+      <option value="user">User</option>
+      <option value="doctor">Doctor</option>
+    </select>
+    <div class="invalid-feedback">Please select a role.</div>
+
+    <button type="submit" class="btn btn-main w-100 mt-3">Register</button>
+
+    <div class="text-center mt-3">
+      <a href="{{ url_for('login') }}" class="text-info text-decoration-none">
+        Already have an account? Login
+      </a>
+    </div>
+
+  </form>
+</div>
+
+<!-- AGE CALCULATION -->
+<script>
+document.getElementById("dob").addEventListener("change", function () {
+  let dob = new Date(this.value);
+  let today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  let m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  document.getElementById("age").value = age;
+});
+
+// Toggle patient fields based on role selection
+function togglePatientFields() {
+  const role = document.querySelector('select[name="role"]').value;
+  const patientFields = document.getElementById('patientFields');
+  const patientInputs = patientFields.querySelectorAll('input, textarea');
+
+  if (role === 'user') {
+    patientFields.style.display = 'block';
+    patientInputs.forEach(input => input.setAttribute('required', ''));
+  } else {
+    patientFields.style.display = 'none';
+    patientInputs.forEach(input => input.removeAttribute('required'));
+  }
+}
+
+// Form validation - Show messages only for invalid fields
+const form = document.getElementById('registerForm');
+
+// Clear validation messages on input
+form.querySelectorAll('input, select, textarea').forEach(function(field) {
+  field.addEventListener('input', function() {
+    if (this.checkValidity()) {
+      this.classList.remove('is-invalid');
+    }
+  });
+});
+
+// Validate on submit - Show messages only for fields with errors
+form.addEventListener('submit', function (e) {
+  let valid = true;
+  form.querySelectorAll('input, select, textarea').forEach(function(field) {
+    if (!field.checkValidity()) {
+      valid = false;
+      field.classList.add('is-invalid');
+    } else {
+      field.classList.remove('is-invalid');
+    }
+  });
+  if (!valid) e.preventDefault();
+});
+</script>
+
+<!-- ================= STYLES ================= -->
+<style>
+/* INPUTS */
+.form-control,
+.form-select {
+  background:#121b2d;
+  color:#ffffff;
+  border:1px solid #4dd0e1;
+  border-radius:12px;
+  padding:12px;
+  transition:0.3s;
+}
+
+/* PLACEHOLDER */
+.form-control::placeholder,
+.form-select option {
+  color:#90a4ae;
+  opacity:1;
+}
+
+/* FOCUS */
+.form-control:focus,
+.form-select:focus {
+  border-color:#00bcd4;
+  box-shadow:0 0 6px rgba(77,208,225,0.4);
+  background:#121b2d;
+  color:#ffffff;
+}
+
+/* GENDER DROPDOWN ICON + ANIMATION */
+.gender-select-wrap{
+  position:relative;
+}
+
+.gender-select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  padding-right:42px;
+}
+
+.gender-select-wrap::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:16px;
+  width:8px;
+  height:8px;
+  border-right:2px solid #4dd0e1;
+  border-bottom:2px solid #4dd0e1;
+  transform:translateY(-70%) rotate(45deg);
+  pointer-events:none;
+  animation:genderArrowFloat 1.4s ease-in-out infinite;
+  transition:transform .2s ease, border-color .2s ease;
+}
+
+.gender-select-wrap:focus-within::after{
+  border-color:#00bcd4;
+  transform:translateY(-35%) rotate(225deg);
+  animation:none;
+}
+
+/* BUTTON */
+.btn-main {
+  background: linear-gradient(90deg,#4dd0e1,#00bcd4);
+  color:#000;
+  font-weight:600;
+  border-radius:30px;
+  padding:12px;
+}
+
+/* INVALID FEEDBACK - Hidden by default, only shown for invalid fields */
+.invalid-feedback {
+  display: none !important;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Show feedback ONLY when field has invalid class */
+.is-invalid ~ .invalid-feedback,
+.form-control.is-invalid + .invalid-feedback,
+.form-select.is-invalid + .invalid-feedback {
+  display: block !important;
+}
+
+/* FADE IN ANIMATION */
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(-5px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+@keyframes genderArrowFloat {
+  0%, 100% { transform:translateY(-70%) rotate(45deg); }
+  50% { transform:translateY(-50%) rotate(45deg); }
+}
+</style>
+{% endblock %}

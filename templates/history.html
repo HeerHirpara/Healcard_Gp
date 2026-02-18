@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= APPOINTMENT HISTORY ================= -->
+
+<div class="container pro-history-container">
+
+  <!-- Header -->
+  <div class="pro-page-header">
+    <div class="d-flex align-items-center gap-3">
+      <div class="pro-page-icon">
+        <i class="fas fa-history"></i>
+      </div>
+      <div>
+        <h2>Appointment History</h2>
+        <p>Your complete appointment records</p>
+      </div>
+    </div>
+  </div>
+
+  {% if doctors_appointments %}
+
+  <div class="row g-4">
+
+    {% for doctor_name, doctor_data in doctors_appointments.items() %}
+
+   <div class="col-12">
+
+
+      <div class="doctor-card-pro h-100">
+
+        <!-- Doctor header -->
+        <div class="doctor-header text-center">
+
+          <div class="doctor-avatar-pro">
+            <i class="fas fa-user-md"></i>
+          </div>
+
+          <div class="doctor-title">
+            Dr. {{ doctor_data.doctor_info.fname }} {{ doctor_data.doctor_info.lname }}
+          </div>
+
+          <div class="doctor-subtitle">
+            {{ doctor_data.doctor_info.specialty }}
+          </div>
+
+        </div>
+
+        <!-- Body -->
+        <div class="doctor-body">
+
+          <div class="doctor-info-list">
+
+            <div class="info-row">
+              <i class="fas fa-hospital"></i>
+              <span>{{ doctor_data.doctor_info.hospital_name or "N/A" }}</span>
+            </div>
+
+            <div class="info-row">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ doctor_data.doctor_info.city }}, {{ doctor_data.doctor_info.state }}</span>
+            </div>
+
+            <div class="info-row">
+              <i class="fas fa-calendar-alt"></i>
+              <span>
+                {{ doctor_data.appointments|length }}
+                appointment{{ 's' if doctor_data.appointments|length > 1 else '' }}
+              </span>
+            </div>
+
+          </div>
+
+          <div class="text-center mt-3">
+            <button
+              class="btn btn-outline-info btn-sm expand-btn"
+              data-doctor-name="{{ doctor_name }}">
+              View appointments
+            </button>
+          </div>
+
+          <!-- Appointments -->
+          <div
+            class="appointments-list-pro"
+            id="appointments-{{ doctor_name|replace(' ', '_') }}"
+            style="display:none;">
+
+            {% for appointment in doctor_data.appointments %}
+
+            <div class="appointment-card-pro">
+
+              <div class="appointment-top">
+
+                {% if appointment.status == 'accepted' %}
+                  <span class="badge bg-success">Accepted</span>
+                {% elif appointment.status == 'rejected' %}
+                  <span class="badge bg-danger">Rejected</span>
+                {% elif appointment.status == 'pending' %}
+                  <span class="badge bg-warning">Pending</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ appointment.status|title }}</span>
+                {% endif %}
+
+              </div>
+
+              <div class="appointment-grid">
+
+                <div class="grid-item">
+                  <span>Date</span>
+                  <strong>{{ appointment.date }}</strong>
+                </div>
+
+                <div class="grid-item">
+                  <span>Time</span>
+                  <strong>{{ appointment.time }}</strong>
+                </div>
+
+                <div class="grid-item full">
+                  <span>Address</span>
+                  <strong>{{ appointment.address }}</strong>
+                </div>
+
+              </div>
+
+              {% if appointment.amount %}
+              <div class="payment-box">
+
+                <div class="payment-title">
+                  <i class="fas fa-credit-card me-1"></i> Payment
+                </div>
+
+                <div class="payment-row">
+                  <span>Amount</span>
+                  <strong>₹{{ appointment.amount }}</strong>
+                </div>
+
+                <div class="payment-row">
+                  <span>Method</span>
+                  <strong>{{ appointment.payment_method|title }}</strong>
+                </div>
+
+                <div class="payment-row">
+                  <span>Status</span>
+                  <strong class="{{ 'text-success' if appointment.payment_status == 'completed' else 'text-danger' }}">
+                    {{ appointment.payment_status|title }}
+                  </strong>
+                </div>
+
+              </div>
+              {% endif %}
+
+              <!-- Consultation Notes Button -->
+              <div class="text-center mt-2">
+                <button class="btn btn-outline-info btn-sm view-notes-btn" data-appointment-id="{{ appointment.id }}">
+                  <i class="fas fa-notes-medical me-1"></i> View Consultation Notes
+                </button>
+              </div>
+
+              <!-- Consultation Notes Container -->
+              <div class="consultation-notes-container" id="notes-{{ appointment.id }}" style="display:none;">
+                <div class="consultation-notes-content mt-2 p-3 border rounded" style="background:#1a1f2c; border-color:#2f3b52;">
+                  <h6 class="text-info mb-2">
+                    <i class="fas fa-notes-medical me-1"></i> Consultation Notes
+                  </h6>
+                  <div class="notes-text text-light" id="notes-text-{{ appointment.id }}" data-loaded="false">Loading notes...</div>
+                </div>
+              </div>
+
+            </div>
+
+            {% endfor %}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+
+  <!-- Empty state -->
+  <div class="empty-state-pro text-center">
+
+    <div class="empty-icon-pro">
+      <i class="fas fa-calendar-times"></i>
+    </div>
+
+    <h4>No Appointments Found</h4>
+    <p>You haven't booked any appointments yet.</p>
+
+    <a href="/dashboard" class="btn btn-info btn-sm mt-2">
+      Back to Dashboard
+    </a>
+
+  </div>
+
+  {% endif %}
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="pro-footer">
+  © 2026 MedStash • Smart Healthcare Record System
+</footer>
+
+
+<!-- ================= STYLES ================= -->
+
+<style>
+
+body{
+  background:#0b0f1a;
+  color:#e6edf6;
+  font-family:'Outfit',sans-serif;
+}
+
+/* layout */
+
+.pro-history-container{
+  max-width:1100px;
+  margin:28px auto 40px auto;
+}
+
+/* header */
+
+.pro-page-header{
+  background:#121b2d;
+  border:1px solid #22324a;
+  border-radius:12px;
+  padding:20px 22px;
+  margin-bottom:24px;
+}
+
+.pro-page-header h2{
+  font-size:20px;
+  font-weight:600;
+  margin-bottom:4px;
+  color:#eaf2ff;
+}
+
+.pro-page-header p{
+  margin:0;
+  font-size:13px;
+  color:#9fb1cc;
+}
+
+.pro-page-icon{
+  width:40px;
+  height:40px;
+  border-radius:8px;
+  background:#0f172a;
+  border:1px solid #22324a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#7fd9e7;
+}
+
+/* doctor card */
+
+.doctor-card-pro{
+  background:#121b2d;
+  border:1px solid #22324a;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* header */
+
+.doctor-header{
+  padding:18px 16px 10px 16px;
+  border-bottom:1px solid #22324a;
+}
+
+.doctor-avatar-pro{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:#0f172a;
+  border:1px solid #22324a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#7fd9e7;
+  margin:0 auto 8px auto;
+  font-size:18px;
+}
+
+.doctor-title{
+  font-size:15px;
+  font-weight:600;
+  color:#eaf2ff;
+}
+
+.doctor-subtitle{
+  font-size:12px;
+  color:#8fa3bf;
+}
+
+/* body */
+
+.doctor-body{
+  padding:14px 16px 16px 16px;
+}
+
+/* info */
+
+.doctor-info-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.info-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:#cbd5e1;
+}
+
+.info-row i{
+  width:14px;
+  font-size:12px;
+  color:#7fa8c9;
+}
+
+/* expand button */
+
+.expand-btn{
+  font-size:12px;
+  border-radius:6px;
+  padding:5px 12px;
+  border-color:#2f415f;
+  color:#9fdbea;
+}
+
+.expand-btn:hover{
+  background:#0f172a;
+  color:#7fd9e7;
+}
+
+/* appointments list */
+
+.appointments-list-pro{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #22324a;
+}
+
+/* appointment card */
+
+.appointment-card-pro{
+  background:#0f172a;
+  border:1px solid #1f2f46;
+  border-radius:8px;
+  padding:12px 12px 10px 12px;
+  margin-bottom:12px;
+}
+
+.appointment-top{
+  margin-bottom:8px;
+}
+
+/* grid */
+
+.appointment-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.grid-item{
+  font-size:12px;
+}
+
+.grid-item span{
+  display:block;
+  color:#8fa3bf;
+  margin-bottom:2px;
+}
+
+.grid-item strong{
+  font-weight:500;
+  color:#e6edf6;
+}
+
+.grid-item.full{
+  grid-column:1 / -1;
+}
+
+/* payment */
+
+.payment-box{
+  border-top:1px solid #23334c;
+  padding-top:8px;
+  margin-top:8px;
+}
+
+.payment-title{
+  font-size:12px;
+  font-weight:600;
+  color:#9fdbea;
+  margin-bottom:6px;
+}
+
+.payment-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-bottom:4px;
+}
+
+.payment-row span{
+  color:#9fb1cc;
+}
+
+.payment-row strong{
+  font-weight:500;
+  color:#e6edf6;
+}
+
+/* empty */
+
+.empty-state-pro{
+  background:#121b2d;
+  border:1px solid #22324a;
+  border-radius:12px;
+  padding:40px 20px;
+}
+
+.empty-icon-pro{
+  font-size:36px;
+  color:#7fa8c9;
+  margin-bottom:10px;
+}
+
+.empty-state-pro h4{
+  font-size:16px;
+  font-weight:600;
+  color:#eaf2ff;
+}
+
+.empty-state-pro p{
+  font-size:13px;
+  color:#9fb1cc;
+}
+
+/* footer */
+
+.pro-footer{
+  text-align:center;
+  font-size:12px;
+  color:#7f93b2;
+  margin-bottom:16px;
+}
+
+</style>
+
+<!-- ================= SCRIPT ================= -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  document.querySelectorAll('.expand-btn').forEach(btn => {
+
+    btn.addEventListener('click', function () {
+
+      const doctorName = this.getAttribute('data-doctor-name');
+      const panelId = "appointments-" + doctorName.replaceAll(" ", "_");
+      const panel = document.getElementById(panelId);
+
+      if(!panel) return;
+
+      const open = panel.style.display === "block";
+
+      panel.style.display = open ? "none" : "block";
+
+      this.innerHTML = open
+        ? 'View appointments'
+        : 'Hide appointments';
+
+    });
+
+  });
+
+  // Handle consultation notes button clicks
+  document.querySelectorAll('.view-notes-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const appointmentId = this.getAttribute('data-appointment-id');
+      const notesContainer = document.getElementById(`notes-${appointmentId}`);
+      const notesText = document.getElementById(`notes-text-${appointmentId}`);
+      const isVisible = notesContainer.style.display === 'block';
+
+      if (isVisible) {
+        // Hide the notes
+        notesContainer.style.display = 'none';
+        this.innerHTML = '<i class="fas fa-notes-medical me-1"></i> View Consultation Notes';
+      } else {
+        // Show the notes - fetch if not already loaded
+        if (notesText.getAttribute('data-loaded') === 'false') {
+          notesText.textContent = 'Loading notes...';
+          fetch(`/get_consultation_notes/${appointmentId}`)
+            .then(response => {
+              console.log('Response status:', response.status);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Response data:', data);
+              if (data.success) {
+                notesText.textContent = data.notes;
+                notesText.setAttribute('data-loaded', 'true');
+              } else {
+                notesText.textContent = 'Error loading consultation notes: ' + data.message;
+                notesText.setAttribute('data-loaded', 'true');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              notesText.textContent = 'Error loading consultation notes: ' + error.message;
+              notesText.setAttribute('data-loaded', 'true');
+            });
+        }
+        notesContainer.style.display = 'block';
+        this.innerHTML = '<i class="fas fa-notes-medical me-1"></i> Hide Consultation Notes';
+      }
+    });
+  });
+
+});
+</script>
+
+{% endblock %}

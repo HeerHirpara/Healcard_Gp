@@ -1,0 +1,781 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Back Button -->
+<div class="position-fixed top-0 start-0 p-3" style="z-index:1050;">
+  <button class="btn prev-btn" onclick="window.history.back()" aria-label="Previous">
+    <i class="fa-solid fa-arrow-left"></i>
+  </button>
+</div>
+
+<div class="container-fluid py-5" style="background:#0f172a;min-height:100vh;">
+<div class="container">
+
+<!-- Profile Header -->
+<div class="profile-header text-center mb-5">
+
+  <div class="profile-avatar-container">
+    <img src="https://img.icons8.com/material-outlined/150/4dd0e1/user.png" class="profile-avatar">
+    <div class="avatar-badge">
+      <i class="fas fa-user-md"></i>
+    </div>
+  </div>
+
+  <h1 class="doctor-title">Dr. {{ doctor.fname }} {{ doctor.lname }}</h1>
+  <p class="doctor-subtitle">{{ doctor.specialty }}</p>
+
+  <div class="rating-display">
+    {% for i in range(5) %}
+      {% if i < doctor.rating|float|round %}
+        <span class="star filled">★</span>
+      {% else %}
+        <span class="star">☆</span>
+      {% endif %}
+    {% endfor %}
+    <span class="rating-number">{{ doctor.rating|float|round(1) }}</span>
+  </div>
+
+</div>
+
+<!-- Stats -->
+<div class="stats-section mb-5">
+<div class="row g-4">
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">₹{{ doctor.fees }}</div>
+        <div class="stat-label">Consultation Fee</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-clock"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ doctor.experience_years or 0 }}</div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ distance or "N/A" }}</div>
+        <div class="stat-label">Distance</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ doctor.age or "N/A" }}</div>
+        <div class="stat-label">Age</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<div class="row g-4">
+
+<!-- Main -->
+<div class="col-lg-8">
+
+<div class="profile-card mb-4">
+
+<h3 class="section-title">
+<i class="fas fa-info-circle me-2"></i>About Doctor
+</h3>
+
+<div class="info-grid">
+
+{% if doctor.qualification %}
+<div class="info-item">
+<i class="fas fa-graduation-cap info-icon"></i>
+<div class="info-content">
+<div class="info-label">Qualification</div>
+<div class="info-value">{{ doctor.qualification }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.license %}
+<div class="info-item">
+<i class="fas fa-certificate info-icon"></i>
+<div class="info-content">
+<div class="info-label">License</div>
+<div class="info-value">{{ doctor.license }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.languages %}
+<div class="info-item">
+<i class="fas fa-language info-icon"></i>
+<div class="info-content">
+<div class="info-label">Languages</div>
+<div class="info-value">{{ doctor.languages }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.staff_count %}
+<div class="info-item">
+<i class="fas fa-users info-icon"></i>
+<div class="info-content">
+<div class="info-label">Staff Count</div>
+<div class="info-value">{{ doctor.staff_count }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.reviews %}
+<div class="info-item">
+<i class="fas fa-star info-icon"></i>
+<div class="info-content">
+<div class="info-label">Reviews</div>
+<div class="info-value">{{ doctor.reviews }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.awards %}
+<div class="info-item">
+<i class="fas fa-trophy info-icon"></i>
+<div class="info-content">
+<div class="info-label">Awards</div>
+<div class="info-value">{{ doctor.awards }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if doctor.emergency_contact %}
+<div class="info-item">
+<i class="fas fa-phone-alt info-icon"></i>
+<div class="info-content">
+<div class="info-label">Emergency Contact</div>
+<div class="info-value">{{ doctor.emergency_contact }}</div>
+</div>
+</div>
+{% endif %}
+
+</div>
+</div>
+
+
+{% if doctor.hospital_name or doctor.full_address or doctor.hospital_timing or doctor.hospital_contact %}
+<div class="profile-card hospital-section">
+
+<h4 class="section-subtitle mb-3">
+<i class="fas fa-hospital me-2"></i>Hospital Information
+</h4>
+
+<div class="hospital-card">
+
+{% if doctor.hospital_name %}
+<div class="hospital-item">
+<i class="fas fa-building hospital-icon"></i>
+<span class="hospital-text">{{ doctor.hospital_name }}</span>
+</div>
+{% endif %}
+
+{% if doctor.full_address %}
+<div class="hospital-item">
+<i class="fas fa-map-marker-alt hospital-icon"></i>
+<span class="hospital-text">{{ doctor.full_address }}</span>
+</div>
+{% endif %}
+
+{% if doctor.hospital_timing %}
+<div class="hospital-item">
+<i class="fas fa-clock hospital-icon"></i>
+<span class="hospital-text">{{ doctor.hospital_timing }}</span>
+</div>
+{% endif %}
+
+{% if doctor.hospital_contact %}
+<div class="hospital-item">
+<i class="fas fa-phone hospital-icon"></i>
+<span class="hospital-text">{{ doctor.hospital_contact }}</span>
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endif %}
+
+</div>
+
+
+<!-- Sidebar -->
+<div class="col-lg-4">
+
+<div class="booking-card">
+
+<div class="quick-info mb-4">
+<h5 class="quick-info-title">
+<i class="fas fa-lightbulb me-2"></i>Quick Info
+</h5>
+<ul class="quick-info-list">
+<li><i class="fas fa-check-circle me-2 text-success"></i>Verified Doctor</li>
+<li><i class="fas fa-check-circle me-2 text-success"></i>Online Consultation Available</li>
+<li><i class="fas fa-check-circle me-2 text-success"></i>Instant Appointment Booking</li>
+<li><i class="fas fa-check-circle me-2 text-success"></i>Secure Payment</li>
+</ul>
+</div>
+
+<a href="/book_slots/{{ doctor.id }}" class="btn-book-appointment-main mb-4">
+<i class="fas fa-calendar-check me-2"></i>Book Appointment
+</a>
+
+<div class="contact-info">
+<h5 class="contact-title">
+<i class="fas fa-address-book me-2"></i>Get in Touch
+</h5>
+
+<div class="contact-methods">
+<a href="tel:{{ doctor.hospital_contact or '+91-XXXXXXXXXX' }}" class="contact-method">
+<i class="fas fa-phone"></i><span>Call Now</span>
+</a>
+<a href="mailto:contact@healcard.com" class="contact-method">
+<i class="fas fa-envelope"></i><span>Email Us</span>
+</a>
+<a href="#" class="contact-method">
+<i class="fas fa-comments"></i><span>Live Chat</span>
+</a>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+
+<style>
+
+/* HEADER */
+
+.profile-header{
+background:#1e293b;
+border-radius:20px;
+padding:3rem 2rem;
+border:1px solid #334155;
+}
+
+.profile-header::before{display:none;}
+
+.profile-avatar{
+width:150px;
+height:150px;
+border-radius:50%;
+object-fit:cover;
+border:4px solid #4dd0e1;
+transition:transform .3s;
+}
+
+.profile-avatar:hover{
+transform:scale(1.05);
+}
+
+.avatar-badge{
+background:#4dd0e1;
+color:#0f172a;
+border-radius:50%;
+width:38px;
+height:38px;
+display:flex;
+align-items:center;
+justify-content:center;
+position:absolute;
+bottom:8px;
+right:8px;
+}
+
+.doctor-title{color:#fff;font-weight:700;font-size:2.5rem;}
+.doctor-subtitle{color:#cbd5e1;}
+
+.star{font-size:1.5rem;color:#64748b;}
+.star.filled{color:#facc15;}
+.rating-number{color:#e2e8f0;font-weight:600;}
+
+
+/* STATS */
+
+.stat-card{
+background:#1e293b;
+border-radius:15px;
+padding:1.5rem;
+border:1px solid #334155;
+transition:.3s;
+}
+
+.stat-card:hover{
+transform:translateY(-5px);
+}
+
+.stat-icon{font-size:2rem;color:#4dd0e1;}
+.stat-value{font-size:1.5rem;font-weight:700;color:#fff;}
+.stat-label{font-size:.8rem;color:#94a3b8;}
+
+
+/* CARDS */
+
+.profile-card,
+.booking-card{
+background:#1e293b;
+border-radius:20px;
+padding:2rem;
+border:1px solid #334155;
+}
+
+
+/* INFO */
+
+.section-title{
+color:#fff;
+font-weight:700;
+font-size:1.5rem;
+margin-bottom:1.5rem;
+border-bottom:2px solid #334155;
+padding-bottom:.5rem;
+}
+
+.info-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:1rem;
+}
+
+.info-item{
+display:flex;
+align-items:center;
+background:#0f172a;
+border-radius:12px;
+padding:1rem;
+border:1px solid #334155;
+transition:.3s;
+}
+
+.info-item:hover{
+transform:translateX(5px);
+}
+
+.info-icon{font-size:1.5rem;color:#4dd0e1;margin-right:1rem;}
+.info-label{font-size:.8rem;color:#94a3b8;font-weight:600;}
+.info-value{color:#e2e8f0;font-size:.95rem;}
+
+
+/* HOSPITAL */
+
+.section-subtitle{color:#fff;font-weight:600;font-size:1.2rem;}
+
+.hospital-card{
+background:#0f172a;
+border-radius:12px;
+padding:1.5rem;
+border:1px solid #334155;
+}
+
+.hospital-item{
+display:flex;
+align-items:center;
+margin-bottom:.5rem;
+color:#e2e8f0;
+}
+
+.hospital-icon{color:#4dd0e1;margin-right:.75rem;}
+
+
+/* SIDEBAR */
+
+.booking-card{position:sticky;top:2rem;}
+
+.quick-info{
+background:#0f172a;
+border-radius:12px;
+padding:1.5rem;
+border:1px solid #334155;
+}
+
+.quick-info-title{color:#fff;font-weight:600;}
+
+.quick-info-list{list-style:none;padding:0;margin:0;}
+.quick-info-list li{color:#cbd5e1;margin-bottom:.5rem;font-size:.9rem;}
+
+
+/* BUTTON */
+
+.btn-book-appointment-main{
+background:#4dd0e1;
+border:none;
+border-radius:15px;
+padding:1rem 2rem;
+font-weight:700;
+font-size:1.1rem;
+color:#0f172a;
+text-decoration:none;
+display:block;
+width:100%;
+transition:.3s;
+}
+
+.btn-book-appointment-main:hover{
+background:#26a69a;
+transform:translateY(-3px);
+}
+
+
+/* CONTACT */
+
+.contact-info{
+background:#0f172a;
+border-radius:12px;
+padding:1.5rem;
+border:1px solid #334155;
+}
+
+.contact-title{color:#fff;font-weight:600;}
+
+.contact-methods{
+display:flex;
+flex-direction:column;
+gap:.5rem;
+}
+
+.contact-method{
+display:flex;
+align-items:center;
+padding:.75rem;
+background:#1e293b;
+border-radius:8px;
+text-decoration:none;
+color:#e2e8f0;
+transition:.3s;
+}
+
+.contact-method:hover{
+background:#243044;
+transform:translateX(5px);
+color:#fff;
+}
+
+.contact-method i{
+margin-right:.75rem;
+width:20px;
+text-align:center;
+}
+
+/* BACK BUTTON */
+.prev-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#121b2d;
+  border:1px solid #22324a;
+  color:#cfefff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .25s ease;
+}
+
+.prev-btn:hover{
+  transform:translateX(-6px);
+  border-color:#4dd0e1;
+  color:#4dd0e1;
+  background:#121b2d;
+}
+
+.prev-btn:active{
+  transform:translateX(-10px) scale(.95);
+}
+
+.prev-btn:focus{
+  box-shadow:none;
+  outline:none;
+}
+
+/* ================= RESPONSIVE ================= */
+
+/* Extra small devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+  .profile-header {
+    padding: 2rem 1rem;
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-badge {
+    width: 30px;
+    height: 30px;
+    bottom: 5px;
+    right: 5px;
+  }
+
+  .avatar-badge i {
+    font-size: 0.8rem;
+  }
+
+  .doctor-title {
+    font-size: 1.8rem;
+  }
+
+  .doctor-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .star {
+    font-size: 1.2rem;
+  }
+
+  .rating-number {
+    font-size: 0.9rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .profile-card,
+  .booking-card {
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    padding: 0.8rem;
+  }
+
+  .info-icon {
+    font-size: 1.2rem;
+    margin-right: 0.8rem;
+  }
+
+  .info-value {
+    font-size: 0.85rem;
+  }
+
+  .hospital-card {
+    padding: 1rem;
+  }
+
+  .hospital-text {
+    font-size: 0.85rem;
+  }
+
+  .quick-info,
+  .contact-info {
+    padding: 1rem;
+  }
+
+  .quick-info-list li {
+    font-size: 0.8rem;
+  }
+
+  .btn-book-appointment-main {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .contact-method {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .contact-method i {
+    margin-right: 0.6rem;
+    width: 18px;
+  }
+}
+
+/* Small devices (tablets, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .profile-header {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .doctor-title {
+    font-size: 2.2rem;
+  }
+
+  .stat-card {
+    padding: 1.2rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .profile-card,
+  .booking-card {
+    padding: 1.8rem;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .btn-book-appointment-main {
+    padding: 0.9rem 1.8rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .profile-header {
+    padding: 2.8rem 2rem;
+  }
+
+  .profile-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .doctor-title {
+    font-size: 2.3rem;
+  }
+
+  .stat-card {
+    padding: 1.4rem;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .profile-card,
+  .booking-card {
+    padding: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.45rem;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .btn-book-appointment-main {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .profile-avatar {
+    width: 160px;
+    height: 160px;
+  }
+
+  .doctor-title {
+    font-size: 2.4rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .profile-avatar {
+    width: 170px;
+    height: 170px;
+  }
+
+  .doctor-title {
+    font-size: 2.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .section-title {
+    font-size: 1.55rem;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 767.98px) {
+  .profile-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .doctor-title {
+    font-size: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 0.8rem;
+  }
+
+  .profile-card,
+  .booking-card {
+    padding: 1rem;
+  }
+
+  .btn-book-appointment-main {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Doctors Report{% endblock %}
+
+{% block content %}
+<h1>Doctors Report</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Specialty</th>
+            <th>Name</th>
+            <th>Fees</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doctor in doctors %}
+        <tr>
+            <td>{{ doctor['specialty'] }}</td>
+            <td>{{ doctor['fname'] }} {{ doctor['lname'] }}</td>
+            <td>{{ doctor['fees'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+

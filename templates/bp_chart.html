@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Blood Pressure History Chart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Blood Pressure History Chart</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="bpChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="/weight_history" class="btn btn-secondary">View History</a>
+                <a href="/add_weight" class="btn btn-primary">Add New Weight</a>
+                <a href="/dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch blood pressure data from API
+    fetch('/get_patient_vitals')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const vitals = data.vitals.filter(v => v.bp_systolic !== null && v.bp_diastolic !== null);
+                const labels = vitals.map(v => new Date(v.date).toLocaleDateString());
+                const systolic = vitals.map(v => v.bp_systolic);
+                const diastolic = vitals.map(v => v.bp_diastolic);
+
+                const ctx = document.getElementById('bpChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Systolic (mmHg)',
+                            data: systolic,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgb(255, 99, 132)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }, {
+                            label: 'Diastolic (mmHg)',
+                            data: diastolic,
+                            borderColor: 'rgb(255, 159, 64)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgb(255, 159, 64)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Blood Pressure History Over Time'
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Blood Pressure (mmHg)'
+                                },
+                                beginAtZero: false
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('bpChart').parentElement.innerHTML = '<p class="text-muted">No blood pressure data available</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching blood pressure data:', error);
+            document.getElementById('bpChart').parentElement.innerHTML = '<p class="text-danger">Error loading chart data</p>';
+        });
+});
+</script>
+{% endblock %}
